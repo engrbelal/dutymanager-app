@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>পার্সোনাল ডিউটি ম্যানেজার (চূড়ান্ত সংস্করণ)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0d47a1; --secondary-color: #1976d2; --accent-color: #42a5f5;
+            --background-color: #f4f6f9; --text-color: #212121; --white-color: #ffffff;
+            --border-color: #e0e0e0; --success-color: #2e7d32; --danger-color: #c62828;
+            --warning-color: #ef6c00; --info-color: #0277bd;
+            --font-family: 'SolaimanLipi', 'Segoe UI', sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-family); background-color: var(--background-color);
+            color: var(--text-color); margin: 0; font-size: 14px; line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 15px auto; padding: 0 10px; }
+        .main-wrapper { display: none; }
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: var(--white-color);
+            padding: 15px; text-align: center; border-radius: 12px 12px 0 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 1.4em; display: flex; align-items: center; justify-content: center; gap: 10px; }
+/* ================== চূড়ান্ত এবং নির্ভরযোগ্য গ্রিড লেআউট ================== */
+.tab-menu {
+    display: grid; /* লেআউট পরিবর্তন করে গ্রিড করা হলো */
+    grid-template-columns: 1fr 1fr 1fr 1fr; /* ৪টি সমান কলাম তৈরি করা হলো */
+    background-color: var(--white-color);
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    padding: 0;
+    width: 100%;
+}
+
+.tab-link {
+    /* এখানে কোনো width বা flex property দরকার নেই */
+    padding: 10px 5px; /* উপরে-নিচে প্যাডিং সামান্য কমানো হলো */
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    color: var(--primary-color);
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    font-size: 12px; /* ফন্ট সাইজ স্বাভাবিক রাখা হলো */
+    display: flex;
+    flex-direction: column; /* আইকন ও টেক্সট উপরে-নিচে */
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    line-height: 1.2;
+}
+
+.tab-link i {
+    font-size: 16px; /* আইকন আরেকটু বড় করা হলো */
+}
+
+.tab-link.active {
+    color: var(--secondary-color);
+    border-bottom-color: var(--secondary-color);
+}
+
+.tab-link:hover {
+    background-color: #f1f1f1;
+}
+/* ================== চূড়ান্ত স্টাইল শেষ ================== */
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+@media (min-width: 600px) {
+    .grid-container {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+/* পুরনো input-wrapper এবং সংশ্লিষ্ট ক্লাসগুলো মুছে নিচের নতুনগুলো বসান */
+
+.input-wrapper {
+    /* এই ক্লাসটি এখন শুধু লেবেল এবং input-with-icon div-এর কন্টেইনার হিসেবে কাজ করবে */
+    margin-bottom: 10px; /* সামান্য স্পেস দেওয়ার জন্য */
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center; /* এই লাইনটিই আইকন এবং ইনপুটকে ভার্টিক্যালি সেন্টারে আনবে */
+}
+
+.input-with-icon .input-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--accent-color);
+    pointer-events: none;
+}
+
+/* ইনপুট ফিল্ডের ভেতরে আইকনের জন্য জায়গা তৈরি করা */
+input, select {
+    padding-left: 35px !important; /* আইকনের জন্য বামদিকে জায়গা রাখা */
+}
+
+        
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12px; }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border-color);
+            border-radius: 8px; box-sizing: border-box; font-size: 14px; font-family: var(--font-family);
+        }
+        button {
+            background-color: var(--secondary-color); color: white; padding: 10px 15px; border: none;
+            border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;
+            width: 100%; margin-top: 8px; transition: background-color 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:hover { background-color: var(--primary-color); }
+        button:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+        .btn-success { background-color: var(--success-color); }
+        .btn-success:hover { background-color: #1b5e20; }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-danger:hover { background-color: #b71c1c; }
+        .btn-info { background-color: var(--info-color); }
+        .btn-info:hover { background-color: #01579b; }
+        .btn-warning { background-color: var(--warning-color); }
+        .btn-warning:hover { background-color: #e65100; }
+
+        .card { padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; position: relative; }
+        .card-header h3 { margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 10px; }
+        .btn-edit-icon {
+            position: absolute; top: -10px; right: -10px; background-color: var(--warning-color);
+            color: var(--white-color); border: none; border-radius: 50%;
+            width: 40px; height: 40px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-edit-icon:hover { transform: scale(1.1); }
+/* মূল CSS কোডটি ফিরিয়ে আনুন */
+.details p { 
+    margin: 8px 0; 
+    font-size: 14px; 
+    display: flex; 
+    align-items: center; 
+}
+.details p strong { 
+    color: var(--primary-color); 
+    min-width: 100px; 
+}
+.details p i { 
+    color: var(--accent-color); 
+    margin-right: 10px; 
+    width: 20px; 
+    text-align: center; 
+}
+
+        .section-title {
+            margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color);
+            color: var(--primary-color); font-size: 16px; display: flex; align-items: center; gap: 10px;
+        }
+        #setup-screen { padding: 30px 20px; text-align: center; }
+        #setup-screen h2 { color: var(--primary-color); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .report-table th, .report-table td { border: 1px solid var(--border-color); padding: 8px; text-align: center; vertical-align: middle; }
+        .report-table th { background-color: #f5f5f5; font-weight: bold; }
+        .absent-row { background-color: #ffebee; color: var(--danger-color); }
+        .holiday-row { background-color: #e3f2fd; }
+        .paid-status { color: var(--success-color); font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .tiffin-cell { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .summary-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 5px solid var(--secondary-color); margin-bottom: 15px; }
+        .summary-card h4 { margin-top: 0; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+        .detail-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .detail-item i { color: var(--accent-color); width: 20px; text-align: center; }
+.holiday-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 5px 0 0 0;
+}
+
+/* --- পরিবর্তিত অংশ শুরু --- */
+.holiday-list li {
+    font-style: normal;
+    color: #555;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+/* নতুন ক্লাস যুক্ত করুন */
+.holiday-reason {
+    display: block;
+    font-size: 11px;
+    color: #555;
+    margin-left: 25px;
+    margin-top: 2px;
+}
+/* --- পরিবর্তিত অংশ শেষ --- */
+
+.holiday-list li .color-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+        
+        #data-management-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+        
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe; padding: 20px;
+            border: 1px solid #888; width: 90%; max-width: 500px;
+            border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: var(--primary-color); }
+        .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover, .close-btn:focus { color: black; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Holiday Calendar Styles */
+        #holiday-calendar {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+            text-align: center;
+        }
+        .calendar-header { font-weight: bold; font-size: 12px; padding-bottom: 5px; }
+        .calendar-day {
+            padding: 8px 0; border-radius: 6px; cursor: pointer;
+            transition: all 0.2s ease; font-size: 13px;
+            border: 1px solid transparent;
+        }
+        @media (max-width: 400px) {
+            .calendar-day { padding: 5px 0; font-size: 12px; }
+            .calendar-header { font-size: 11px; }
+        }
+        .calendar-day:hover { background-color: #e0e0e0; }
+        .day-workday { background-color: #f5f5f5; }
+        .day-workday_holiday { background-color: #c8e6c9; color: var(--success-color); font-weight: bold; } /* Light Green */
+        .day-friday { background-color: #ffcdd2; color: var(--danger-color); font-weight: bold; } /* Light Red */
+        .day-gov_holiday { background-color: #ffecb3; color: var(--warning-color); font-weight: bold; } /* Light Orange */
+        .day-factory_holiday { background-color: #d1c4e9; color: #4527a0; font-weight: bold; } /* Light Purple */
+        .day-special_holiday { background-color: #b3e5fc; color: var(--info-color); font-weight: bold; } /* Light Blue */
+        
+        .calendar-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 11px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; }
+
+        /* Context Menu */
+        #calendar-context-menu {
+            display: none; position: absolute; z-index: 1010;
+            background: var(--white-color); border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 10px; min-width: 220px;
+        }
+        #calendar-context-menu h4 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary-color); }
+        .context-menu-btn {
+            display: flex; align-items: center; width: 100%; text-align: left;
+            padding: 8px 12px; background: none; color: var(--text-color);
+            border: none; border-radius: 6px; font-size: 13px;
+            margin: 2px 0;
+        }
+        .context-menu-btn:hover { background-color: #f1f1f1; }
+        .context-menu-btn i { margin-right: 8px; width: 16px; }
+
+        /* Manual Entry Form Responsive */
+        #manual-entry-modal .modal-content { max-width: 400px; }
+        #manual-entry-modal .grid-container { grid-template-columns: 1fr; }
+        #manual-entry-modal h4 { font-size: 14px; text-align: center; margin: 15px 0 5px; color: #555; }
+/* আপডেটেড অ্যানিমেশন ক্লাস */
+@keyframes flash-animation {
+    0% { background-color: #ffc107; } /* একটি উজ্জ্বল হলুদ রঙ দিয়ে শুরু */
+    70% { background-color: #b2ebf2; } /* একটি শান্ত নীল রঙে পরিবর্তন */
+    100% { background-color: transparent; } /* শেষে স্বাভাবিক অবস্থায় ফেরা */
+}
+.flash-effect {
+    /* সময়কাল বাড়িয়ে ৩ সেকেন্ড করা হলো */
+    animation: flash-animation 3s ease-in-out;
+}
+/* === নতুন টেবিল-ভিত্তিক লেআউটের জন্য CSS === */
+.details-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* প্রতিটি সারির মধ্যে ফাঁকা জায়গা */
+}
+.details-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+.details-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+}
+.details-value {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-align: right;
+}
+.total-row {
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
+    margin-top: 5px;
+    font-weight: bold;
+}
+.total-row .details-label, .total-row .details-value {
+    font-size: 14px;
+    color: var(--success-color);
+}
+.holiday-reason-item {
+    font-size: 12px !important;
+    color: #555;
+    padding-left: 25px;
+}
+.holiday-reason-item .details-value {
+    font-style: italic;
+    color: #555;
+}
+/* ================== অ্যাকর্ডিয়ন মেন্যুর জন্য নতুন স্টাইল ================== */
+.accordion-item {
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden; /* বর্ডার রেডিয়াস ঠিকভাবে দেখানোর জন্য */
+}
+
+.accordion-header {
+    background-color: #ffffff;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 15px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 1em;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.accordion-header:hover {
+    background-color: #f7f7f7;
+}
+
+.accordion-header.active .accordion-icon {
+    transform: rotate(180deg); /* আইকন ঘোরানোর জন্য */
+}
+
+.accordion-icon {
+    transition: transform 0.3s ease-in-out;
+}
+
+.accordion-content {
+    padding: 0 15px;
+    background-color: white;
+    max-height: 0; /* ডিফল্টভাবে কন্টেন্ট লুকানো থাকবে */
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out; /* স্মুথ অ্যানিমেশন */
+}
+
+.accordion-content p {
+    margin-bottom: 10px;
+    line-height: 1.7;
+    font-size: 14px;
+}
+.accordion-content ul {
+    padding-left: 20px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+.accordion-content li {
+    margin-bottom: 8px;
+}
+.accordion-content code {
+    background-color: #e0e0e0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="setup-screen" class="tab-content active">
+            <h2><i class="fas fa-rocket"></i>স্বাগতম!</h2>
+            <p>সিস্টেমটি ব্যবহার করার জন্য, অনুগ্রহ করে প্রথমে আপনার প্রোফাইল তৈরি করুন।</p>
+            <div id="setup-form-container"></div>
+            <button class="btn-success" onclick="saveProfile(true)"><i class="fas fa-user-plus"></i>প্রোফাইল তৈরি করুন</button>
+        </div>
+
+        <div class="main-wrapper">
+            <header><h1><i class="fas fa-user-cog"></i>পার্সোনাল ডিউটি ম্যানেজার</h1></header>
+<!-- ================== সঠিক এবং চূড়ান্ত HTML স্ট্রাকচার ================== -->
+<div class="tab-menu">
+    <div class="tab-link active" onclick="openTab(event, 'profile')"><i class="fas fa-user-circle"></i> প্রোফাইল</div>
+    <div class="tab-link" onclick="openTab(event, 'duty')"><i class="fas fa-clock"></i> ডিউটি</div>
+    <div class="tab-link" onclick="openTab(event, 'report')"><i class="fas fa-chart-line"></i> রিপোর্ট</div>
+    <div class="tab-link" onclick="openTab(event, 'help')"><i class="fas fa-question-circle"></i> সাহায্য</div>
+</div>
+<!-- ================== সঠিক স্ট্রাকচার শেষ ================== -->
+<!-- ================== নতুন অ্যাকর্ডিয়ন সাহায্য ট্যাব ================== -->
+<div id="help" class="tab-content">
+    <header style="padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+        <h2 style="margin: 0; font-size: 1.3em;"><i class="fas fa-book-open"></i> ব্যবহার নির্দেশিকা</h2>
+    </header>
+
+    <!-- সেকশন ১ -->
+    <div class="accordion-item">
+        <button class="accordion-header">
+            <span><i class="fas fa-rocket"></i> ১. প্রথমবার ব্যবহার এবং প্রোফাইল তৈরি</span>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="accordion-content">
+            <p>অ্যাপটি প্রথমবার খোলার পর আপনাকে একটি প্রোফাইল তৈরি করতে হবে। এটি ছাড়া আপনি অ্যাপের মূল ফিচারগুলো ব্যবহার করতে পারবেন না।</p>
+            <ul>
+                <li><strong>আইডি নম্বর:</strong> আপনার অফিসিয়াল আইডি কার্ডের নম্বর দিন (যেমন: <code>E-03</code> অথবা <code>2507001</code>)।</li>
+                <li><strong>নাম:</strong> আপনার পুরো নাম লিখুন।</li>
+                <li><strong>যোগদানের তারিখ:</strong> চাকরিতে যোগদানের সঠিক তারিখ নির্বাচন করুন।</li>
+                <li><strong>মোট বেতন (Gross Salary):</strong> আপনার মাসিক মোট বেতন লিখুন।</li>
+                <li><strong>গ্রেড:</strong> আপনি 'গ্রেড-ভুক্ত' নাকি 'নন-গ্রেড' তা নির্বাচন করুন।</li>
+                <li><strong>পদত্যাগের তথ্য (ঐচ্ছিক):</strong> যদি আপনি পদত্যাগ করে থাকেন, তবেই এই অংশ পূরণ করুন।</li>
+                <li>সব তথ্য দেওয়া হলে <strong>"প্রোফাইল তৈরি করুন"</strong> বাটনে ক্লিক করুন।</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- সেকশন ২ -->
+    <div class="accordion-item">
+        <button class="accordion-header">
+            <span><i class="fas fa-user-circle"></i> ২. প্রোফাইল ট্যাব</span>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="accordion-content">
+            <p>এখানে আপনি আপনার ব্যক্তিগত তথ্য, বেতন কাঠামো এবং সার্ভিস বেনিফিট দেখতে পারবেন।</p>
+            <ul>
+                <li><strong>প্রোফাইল দেখা:</strong> আপনার সব তথ্য এখানে সুন্দরভাবে সাজানো থাকবে।</li>
+                <li><strong>এডিট করা:</strong> উপরের ডানদিকের <i class="fas fa-pencil-alt" style="color: var(--warning-color);"></i> (পেন্সিল) আইকনে ক্লিক করে আপনি যেকোনো সময় আপনার প্রোফাইলের তথ্য পরিবর্তন করতে পারবেন।</li>
+                <li><strong>ডাটা ম্যানেজমেন্ট:</strong>
+                    <ul>
+                        <li><strong>ডাটা এক্সপোর্ট:</strong> আপনার সব ডাটা (প্রোফাইল, ডিউটি লগ) একটি JSON ফাইলে সেভ করে রাখতে পারবেন।</li>
+                        <li><strong>ডাটা ইমপোর্ট:</strong> আগে এক্সপোর্ট করা ফাইল থেকে সব ডাটা আবার অ্যাপে ফিরিয়ে আনতে পারবেন।</li>
+                        <li><strong>সম্পূর্ণ রিসেট:</strong> অ্যাপের সব ডাটা স্থায়ীভাবে মুছে ফেলার জন্য এই বাটন ব্যবহার করুন।</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- সেকশন ৩ -->
+    <div class="accordion-item">
+        <button class="accordion-header">
+            <span><i class="fas fa-clock"></i> ৩. ডিউটি ট্যাব</span>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="accordion-content">
+            <p>এই ট্যাবে আপনি প্রতিদিনের ডিউটি শুরু এবং শেষ করতে পারবেন।</p>
+            <ul>
+                <li><strong>চেক-ইন:</strong> প্রতিদিন <strong>সকাল ৬টা</strong> থেকে ডিউটিতে প্রবেশের জন্য <strong>"চেক-ইন"</strong> বাটনে ক্লিক করুন।</li>
+                <li><strong>চেক-আউট:</strong> ডিউটি শেষে <strong>"চেক-আউট"</strong> বাটনে ক্লিক করুন।</li>
+                <li><strong>ম্যানুয়াল ডিউটি এন্ট্রি:</strong> যদি কোনোদিন চেক-ইন/আউট করতে ভুলে যান, তবে এই বাটন ব্যবহার করুন।</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- সেকশন ৪ -->
+    <div class="accordion-item">
+        <button class="accordion-header">
+            <span><i class="fas fa-chart-line"></i> ৪. রিপোর্ট ট্যাব</span>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="accordion-content">
+            <p>এটি অ্যাপের সবচেয়ে গুরুত্বপূর্ণ অংশ। এখানে আপনি আপনার মাসভিত্তিক সবকিছুর বিস্তারিত রিপোর্ট পাবেন।</p>
+            <ul>
+                <li><strong>মাস নির্বাচন:</strong> যে মাসের রিপোর্ট দেখতে চান, সেটি নির্বাচন করুন।</li>
+                <li><strong>মাসিক সারাংশ:</strong> আপনার মোট ওভারটাইম, অনুপস্থিতি, ছুটি এবং প্রাপ্য বেতনের হিসাব।</li>
+                <li><strong>মাসিক ছুটির ক্যালেন্ডার:</strong> মাসের সকল ছুটির তালিকা এবং কারণ।</li>
+                <li><strong>ডিউটি লগ:</strong> মাসের প্রতিদিনের ডিউটির বিস্তারিত তালিকা।</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- সেকশন ৫ -->
+    <div class="accordion-item">
+        <button class="accordion-header">
+            <span><i class="fas fa-calendar-alt"></i> ৫. ছুটির ক্যালেন্ডার ম্যানেজ করা</span>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="accordion-content">
+            <p>রিপোর্ট ট্যাবের <strong>"ছুটির ক্যালেন্ডার"</strong> বাটনটি ব্যবহার করে আপনি যেকোনো মাসের ছুটির দিনগুলো নিজের মতো করে সাজাতে পারবেন।</p>
+            <ul>
+                <li><strong>ছুটি যোগ করা:</strong> কার্যদিবসে ক্লিক করে সেটিকে 'সরকারি', 'উৎসব' বা 'বিশেষ' ছুটি হিসেবে চিহ্নিত করুন।</li>
+                <li><strong>ছুটি বাতিল করা:</strong> ছুটি হিসেবে চিহ্নিত দিনকে আবার কার্যদিবসে পরিবর্তন করুন।</li>
+                <li><strong>রিসেট করা:</strong> মাসের কাস্টম পরিবর্তনগুলো মুছে ফেলতে **"এই মাসের পরিবর্তন রিসেট করুন"** বাটন ব্যবহার করুন।</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- ================== অ্যাকর্ডিয়ন সাহায্য ট্যাব শেষ ================== -->
+
+<!-- ================== সাহায্য ট্যাব শেষ ================== -->
+
+            <!-- Profile Tab -->
+            <div id="profile" class="tab-content">
+                <div id="profile-view"></div>
+                <div id="profile-edit" style="display:none;">
+                    <h3 class="section-title"><i class="fas fa-edit"></i>প্রোফাইল এডিট করুন</h3>
+                    <div id="edit-form-container"></div>
+                    <div class="grid-container">
+                        <button class="btn-success" onclick="saveProfile(false)"><i class="fas fa-save"></i>আপডেট করুন</button>
+                        <button class="btn-danger" onclick="toggleProfileEdit(false)"><i class="fas fa-times-circle"></i>বাতিল</button>
+                    </div>
+                </div>
+                <div id="data-management-section">
+                    <h4 class="section-title"><i class="fas fa-database"></i>ডাটা ম্যানেজমেন্ট</h4>
+                    <div class="grid-container">
+                        <button class="btn-success" onclick="exportData()"><i class="fas fa-download"></i> ডাটা এক্সপোর্ট</button>
+<button class="btn-info" onclick="importData()"><i class="fas fa-upload"></i> ডাটা ইমপোর্ট</button>
+                        <button class="btn-danger" onclick="hardReset()"><i class="fas fa-power-off"></i> সম্পূর্ণ রিসেট</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Duty Tab -->
+            <div id="duty" class="tab-content">
+                <h2 class="section-title" style="border-top:none; padding-top:0;"><i class="fas fa-fingerprint"></i> আজকের ডিউটি</h2>
+                <div class="card">
+                    <div id="active-duty-status" style="display:none;">
+                        <p id="check-in-time-display"></p>
+                        <p>ডিউটির সময়কাল: <span id="duty-timer">00:00:00</span></p>
+                    </div>
+                    <div class="grid-container">
+                        <button id="check-in-btn" class="btn-success" onclick="checkIn()"><i class="fas fa-play-circle"></i> চেক-ইন</button>
+                        <button id="check-out-btn" class="btn-danger" onclick="checkOut()"><i class="fas fa-stop-circle"></i> চেক-আউট</button>
+                    </div>
+                    <div id="time-info" style="text-align:center; margin-top:15px; font-size:13px;"></div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn-warning" onclick="openManualEntryModal()"><i class="fas fa-edit"></i> ম্যানুয়াল ডিউটি এন্ট্রি</button>
+                </div>
+            </div>
+
+            <!-- Report Tab -->
+<div id="report" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div class="input-wrapper" style="flex-grow: 1; min-width: 150px;">
+            <label for="reportMonth">মাস নির্বাচন করুন</label>
+            <div class="input-with-icon">
+                <i class="fas fa-calendar-week input-icon"></i>
+                <input type="month" id="reportMonth" onchange="generateReport()">
+            </div>
+        </div>
+        <button class="btn-info" onclick="openHolidayModal()" style="width: auto; padding: 8px 12px; font-size: 12px;"><i class="fas fa-calendar-alt"></i> ছুটির ক্যালেন্ডার</button>
+    </div>
+    <div id="monthlyReport" style="margin-top: 20px;"></div>
+</div>
+
+        </div>
+    </div>
+
+<!-- Manual Entry Modal -->
+<div id="manual-entry-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>ম্যানুয়াল এন্ট্রি</h3>
+            <span class="close-btn" onclick="closeManualEntryModal()">&times;</span>
+        </div>
+        <div class="input-wrapper" style="margin-bottom: 15px;">
+            <label for="manualDate">তারিখ</label>
+            <div class="input-with-icon">
+                <i class="fas fa-calendar-day input-icon"></i>
+                <input type="date" id="manualDate">
+            </div>
+        </div>
+        <h4>ভুলে যাওয়া ডিউটি এন্ট্রি করুন</h4>
+        <div class="grid-container">
+            <div class="input-wrapper">
+                <label for="manualInTime">ইন-টাইম</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-sign-in-alt input-icon"></i>
+                    <input type="time" id="manualInTime">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label for="manualOutTime">আউট-টাইম</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-sign-out-alt input-icon"></i>
+                    <input type="time" id="manualOutTime">
+                </div>
+            </div>
+        </div>
+        <button class="btn-success" onclick="addManualDuty()"><i class="fas fa-briefcase"></i> ডিউটি যোগ করুন</button>
+        
+        <!-- একটি বিভাজক লাইন -->
+        <hr style="margin: 20px 0; border-color: var(--border-color);">
+
+        <h4>অন্যান্য অপশন</h4>
+        <!-- ছুটি যোগ এবং ডিউটি মোছার জন্য নতুন গ্রিড কন্টেইনার -->
+        <div class="grid-container">
+            <button class="btn-info" onclick="addLeaveEntry()"><i class="fas fa-plane-departure"></i> অনুমোদিত ছুটি যোগ করুন</button>
+            <!-- নতুন ডিউটি মোছার বাটন -->
+            <button class="btn-danger" onclick="deleteDutyEntry()"><i class="fas fa-trash-alt"></i> এই দিনের এন্ট্রি মুছুন</button>
+        </div>
+    </div>
+</div>
+
+
+
+    <!-- Holiday Calendar Modal -->
+    <div id="holiday-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title"></h3>
+                <span class="close-btn" onclick="closeHolidayModal()">&times;</span>
+            </div>
+            <div id="holiday-calendar"></div>
+            <div class="calendar-legend">
+                <div class="legend-item"><span class="legend-color day-workday"></span>কার্যদিবস</div>
+                <div class="legend-item"><span class="legend-color day-friday"></span>শুক্রবার</div>
+                <div class="legend-item"><span class="legend-color day-gov_holiday"></span>সরকারি</div>
+                <div class="legend-item"><span class="legend-color day-factory_holiday"></span>উৎসব</div>
+                <div class="legend-item"><span class="legend-color day-special_holiday"></span>বিশেষ</div>
+                <div class="legend-item"><span class="legend-color day-workday_holiday"></span>কার্যদিবস (ছুটি)</div>
+            </div>
+            <button class="btn-danger" style="margin-top: 20px;" onclick="resetCurrentMonthHolidays()"><i class="fas fa-undo"></i> এই মাসের পরিবর্তন রিসেট করুন</button>
+        </div>
+    </div>
+
+    <!-- Calendar Context Menu -->
+    <div id="calendar-context-menu">
+        <h4 id="context-menu-date"></h4>
+        <div id="context-menu-holiday-options">
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'workday_holiday')"><i class="fas fa-briefcase" style="color: var(--success-color);"></i> কার্যদিবস করুন</button>
+        </div>
+        <div id="context-menu-workday-options">
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'gov_holiday')"><i class="fas fa-flag" style="color: var(--warning-color);"></i> সরকারি ছুটি</button>
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'factory_holiday')"><i class="fas fa-industry" style="color: #4527a0;"></i> উৎসব ছুটি</button>
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'special_holiday')"><i class="fas fa-star" style="color: var(--info-color);"></i> বিশেষ ছুটি</button>
+        </div>
+        <hr style="margin: 5px 0;">
+        <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, null)"><i class="fas fa-undo" style="color: #757575;"></i> ডিফল্ট করুন</button>
+    </div>
+
+    <script>
+    // --- Constants ---
+    const CHECK_IN_DEADLINE_HOUR = 8;
+    const CHECK_IN_DEADLINE_MINUTE = 20;
+    const BONUS_LEAVE_LIMIT = 1;
+
+    // --- Global Variables ---
+    let dutyTimerInterval = null;
+
+    // --- Utility Functions ---
+    const toBengali = (num) => {
+        if (num === null || num === undefined || num === '') return '';
+        const parsedNum = Number(num);
+        if (isNaN(parsedNum)) return num;
+        return parsedNum.toLocaleString('bn-BD', { useGrouping: false, maximumFractionDigits: 2 });
+    };
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = String(date.getUTCFullYear()).slice(-2);
+        return `${toBengali(day)}/${toBengali(month)}/${toBengali(year)}`;
+    };
+    const formatLateTime = (minutes) => {
+        if (!minutes || minutes <= 0) return toBengali(0);
+        const roundedMinutes = Math.round(minutes);
+        if (roundedMinutes < 60) return `${toBengali(roundedMinutes)} মিনিট`;
+        const hours = Math.floor(roundedMinutes / 60);
+        const remainingMinutes = roundedMinutes % 60;
+        return `${toBengali(hours)} ঘণ্টা ${toBengali(remainingMinutes)} মিনিট`;
+    };
+
+    // --- DOMContentLoaded: Initial setup ---
+document.addEventListener('DOMContentLoaded', () => {
+    const profileFormHTML = getProfileFormHTML();
+    document.getElementById('setup-form-container').innerHTML = profileFormHTML;
+    document.getElementById('edit-form-container').innerHTML = profileFormHTML;
+    
+    const today = new Date();
+    document.getElementById('reportMonth').value = today.toISOString().substring(0, 7);
+
+    const profile = localStorage.getItem('employeeProfile');
+    if (profile) {
+        document.getElementById('setup-screen').style.display = 'none';
+        document.querySelector('.main-wrapper').style.display = 'block';
+        
+        // --- নতুন কোড শুরু ---
+        // localStorage থেকে শেষ দেখা ট্যাবের নাম পড়া হচ্ছে
+        const lastTab = localStorage.getItem('lastActiveTab');
+        
+        // যদি কোনো সেভ করা ট্যাব থাকে, সেটি খোলা হবে, অন্যথায় ডিফল্ট 'profile' ট্যাব খোলা হবে
+        openTab(null, lastTab || 'profile'); 
+        // --- নতুন কোড শেষ ---
+
+        loadProfile();
+        generateReport(); 
+    }
+});
+
+// --- HTML Form Generation ---
+function getProfileFormHTML() {
+    return `
+        <div class="grid-container">
+            <div class="input-wrapper">
+                <label for="empId">আইডি নম্বর</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-id-badge input-icon"></i>
+                    <input type="text" id="empId" placeholder="যেমন: E-03 বা 2507010">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label for="empName">নাম</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="empName" placeholder="আপনার নাম">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label for="joinDate">যোগদানের তারিখ</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-check input-icon"></i>
+                    <input type="date" id="joinDate">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label for="grossSalary">মোট বেতন (Gross Salary)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-wallet input-icon"></i>
+                    <input type="number" id="grossSalary" placeholder="">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label for="grade">কর্মচারীর গ্রেড</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-layer-group input-icon"></i>
+                    <select id="grade">
+                        <option value="non-grade">নন-গ্রেড</option>
+                        <option value="grade">গ্রেড-ভুক্ত</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="section-title" style="margin-top: 25px; font-size: 14px;"><i class="fas fa-user-slash"></i>পদত্যাগের তথ্য (ঐচ্ছিক)</h4>
+        <p style="font-size: 12px; color: #666; margin-top: -10px; margin-bottom: 15px;">
+            যদি কর্মচারী পদত্যাগ করে থাকেন, তবেই এই অংশ পূরণ করুন।
+        </p>
+        <div class="grid-container">
+            <div class="input-wrapper">
+                <label for="resignationDate">পদত্যাগপত্র জমা দেওয়ার তারিখ</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-file-signature input-icon"></i>
+                    <input type="date" id="resignationDate">
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <label for="lastDayOfJob">চাকরির শেষ দিন</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-times input-icon"></i>
+                    <input type="date" id="lastDayOfJob">
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+    // --- Salary & Profile Calculations ---
+    function calculateSalaryBreakdown(gross) {
+        if (!gross || gross <= 0) return { basic: 0, houseRent: 0, medical: 0, transport: 0, food: 0 };
+        const medical = 750; const transport = 450; const food = 1250;
+        const houseRentRatio = 0.50;
+        const basic = (gross - medical - transport - food) / (1 + houseRentRatio);
+        const houseRent = basic * houseRentRatio;
+        return { basic: Math.round(basic), houseRent: Math.round(houseRent), medical, transport, food };
+    }
+
+// --- মূল লেআউটে ফেরার জন্য loadProfile ফাংশন ---
+function loadProfile() {
+    const profile = JSON.parse(localStorage.getItem("employeeProfile"));
+    if (!profile) return;
+
+    // ফর্ম ফিল্ড পপুলেট করার কোড (অপরিবর্তিত)
+    const container = document.getElementById("profile-edit");
+    container.querySelector("#empId").value = profile.empId;
+    container.querySelector("#empName").value = profile.empName;
+    container.querySelector("#joinDate").value = profile.joinDate;
+    container.querySelector("#grossSalary").value = profile.grossSalary;
+    container.querySelector("#grade").value = profile.grade;
+    container.querySelector("#resignationDate").value = profile.resignationDate || "";
+    container.querySelector("#lastDayOfJob").value = profile.lastDayOfJob || "";
+
+    const breakdown = calculateSalaryBreakdown(profile.grossSalary);
+    const otRate = breakdown.basic > 0 ? toBengali(parseFloat(((breakdown.basic / 208) * 2).toFixed(2))) : toBengali(0);
+
+    const serviceBenefit = calculateServiceBenefit(profile);
+    let serviceBenefitHTML = "";
+    if (serviceBenefit) {
+        serviceBenefitHTML = `
+            <h4 class="section-title"><i class="fas fa-gift"></i>সার্ভিস বেনিফিট</h4>
+            <div class="details">
+                <p><i class="fas fa-money-bill-wave"></i><strong>প্রাপ্য টাকা:</strong> ${toBengali(serviceBenefit.amount)} টাকা</p>
+                <p><i class="fas fa-info-circle"></i><strong>স্ট্যাটাস:</strong> ${serviceBenefit.status}</p>
+            </div>
+        `;
+    }
+
+    const viewHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-tie"></i>${profile.empName || "প্রোফাইল"}</h3>
+                <button class="btn-edit-icon" onclick="toggleProfileEdit(true)" title="প্রোফাইল এডিট করুন"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+            <div class="details">
+                <p><i class="fas fa-id-card"></i><strong>আইডি:</strong> ${toBengali(profile.empId)}</p>
+                <p><i class="fas fa-layer-group"></i><strong>গ্রেড:</strong> ${profile.grade === "grade" ? "গ্রেড-ভুক্ত" : "নন-গ্রেড"}</p>
+                <p><i class="fas fa-calendar-alt"></i><strong>যোগদান:</strong> ${new Date(profile.joinDate).toLocaleDateString("bn-BD", { timeZone: "UTC" })}</p>
+                <p><i class="fas fa-hourglass-half"></i><strong>ওটি রেট:</strong> ${otRate} টাকা/ঘণ্টা</p>
+            </div>
+            <h4 class="section-title"><i class="fas fa-file-invoice-dollar"></i>বেতন কাঠামো</h4>
+            <div class="details">
+                <p><i class="fas fa-money-bill-wave"></i><strong>মূল বেতন:</strong> ${toBengali(breakdown.basic)} টাকা</p>
+                <p><i class="fas fa-home"></i><strong>বাড়ি ভাড়া:</strong> ${toBengali(breakdown.houseRent)} টাকা</p>
+                <p><i class="fas fa-utensils"></i><strong>খাদ্য ভাতা:</strong> ${toBengali(breakdown.food)} টাকা</p>
+                <p><i class="fas fa-briefcase-medical"></i><strong>চিকিৎসা:</strong> ${toBengali(breakdown.medical)} টাকা</p>
+                <p><i class="fas fa-bus"></i><strong>যাতায়াত:</strong> ${toBengali(breakdown.transport)} টাকা</p>
+                <p><i class="fas fa-wallet"></i><strong>মোট বেতন:</strong> ${toBengali(profile.grossSalary)} টাকা</p>
+            </div>
+            ${serviceBenefitHTML}
+        </div>`;
+    document.getElementById("profile-view").innerHTML = viewHTML;
+}
+
+/**
+ * সার্ভিস বেনিফিটের পরিমাণ হিসাব করে (পদত্যাগের নিয়মাবলী সহ)।
+ * @param {object} profile - কর্মচারীর প্রোফাইল অবজেক্ট।
+ * @returns {object|null} - যদি যোগ্য হন তবে টাকার পরিমাণ ও স্ট্যাটাস, অন্যথায় null।
+ */
+function calculateServiceBenefit(profile) {
+    if (!profile.joinDate) {
+        return null; // যোগদানের তারিখ না থাকলে হিসাব সম্ভব নয়
+    }
+
+    const joinDate = new Date(profile.joinDate);
+    // চাকরির শেষ দিন কোনটি হবে, তা নির্ধারণ করা
+    // যদি পদত্যাগ করে থাকেন, তবে চাকরির শেষ দিন, অন্যথায় আজকের দিন
+    const endDate = profile.lastDayOfJob ? new Date(profile.lastDayOfJob) : new Date();
+
+    // চাকরির মোট পূর্ণ বছর গণনা করা (শেষ দিন পর্যন্ত)
+    let yearsOfService = endDate.getFullYear() - joinDate.getFullYear();
+    const m = endDate.getMonth() - joinDate.getMonth();
+    if (m < 0 || (m === 0 && endDate.getDate() < joinDate.getDate())) {
+        yearsOfService--;
+    }
+
+    // যদি চাকরির মেয়াদ ৫ বছরের কম হয়, তাহলে যোগ্য নন
+    if (yearsOfService < 5) {
+        return null;
+    }
+
+    const breakdown = calculateSalaryBreakdown(profile.grossSalary);
+    const basicSalary = breakdown.basic;
+    let initialBenefitAmount = 0;
+
+    // ধাপ ১: পদত্যাগের পূর্বের মোট সার্ভিস বেনিফিট হিসাব
+    if (yearsOfService >= 10) {
+        // যদি ১০ বছর বা তার বেশি হয়, তাহলে বিগত সমস্ত বছরের জন্য সম্পূর্ণ বেসিক
+        initialBenefitAmount = basicSalary * yearsOfService;
+    } else {
+        // যদি ৫ থেকে ৯ বছরের মধ্যে হয়, তাহলে বিগত সমস্ত বছরের জন্য অর্ধেক বেসিক
+        initialBenefitAmount = (basicSalary / 2) * yearsOfService;
+    }
+
+    // ধাপ ২: পদত্যাগের জরিমানা হিসাব (যদি প্রযোজ্য হয়)
+    let penaltyAmount = 0;
+    let statusMessage = "নিয়ম অনুযায়ী প্রাপ্য"; // ডিফল্ট স্ট্যাটাস
+
+    // শুধুমাত্র যদি পদত্যাগের এবং চাকরির শেষ দিনের তারিখ থাকে
+    if (profile.resignationDate && profile.lastDayOfJob) {
+        const resignationDate = new Date(profile.resignationDate);
+        const lastDay = new Date(profile.lastDayOfJob);
+
+        // নোটিশ পিরিয়ড দিনে গণনা করা
+        const noticePeriodInDays = (lastDay - resignationDate) / (1000 * 60 * 60 * 24);
+
+        if (noticePeriodInDays < 30) {
+            // নোটিশ ৩০ দিনের কম হলে ২ বছরের জরিমানা
+            penaltyAmount = basicSalary * 2;
+            statusMessage = "নোটিশ না দেওয়ায় ২ বছরের টাকা কর্তন";
+        } else if (noticePeriodInDays < 60) {
+            // নোটিশ ৬০ দিনের কম কিন্তু ৩০ দিনের বেশি হলে ১ বছরের জরিমানা
+            penaltyAmount = basicSalary * 1;
+            statusMessage = "১ মাস নোটিশ দেওয়ায় ১ বছরের টাকা কর্তন";
+        }
+        // যদি ৬০ দিন বা তার বেশি হয়, কোনো জরিমানা নেই (penaltyAmount = 0)
+    }
+
+    // ধাপ ৩: চূড়ান্ত টাকার পরিমাণ নির্ধারণ
+    const finalBenefitAmount = initialBenefitAmount - penaltyAmount;
+
+    return {
+        amount: Math.round(finalBenefitAmount),
+        status: statusMessage
+    };
+}
+
+
+    function saveProfile(isInitialSetup) {
+        const container = isInitialSetup ? document.getElementById('setup-form-container') : document.getElementById('profile-edit');
+        
+        const profile = {
+            empId: container.querySelector('#empId').value,
+            empName: container.querySelector('#empName').value,
+            joinDate: container.querySelector('#joinDate').value,
+            grossSalary: container.querySelector('#grossSalary').value,
+            grade: container.querySelector('#grade').value,
+            resignationDate: container.querySelector('#resignationDate').value || null,
+            lastDayOfJob: container.querySelector('#lastDayOfJob').value || null,
+        };
+    
+        // --- নতুন কোড শুরু: শুধুমাত্র প্রথমবার প্রোফাইল তৈরির সময় আইডি ফরম্যাট যাচাই ---
+        if (isInitialSetup) {
+            const empId = profile.empId.trim();
+            // ফরম্যাট ১: E- দিয়ে শুরু এবং এরপর সংখ্যা (যেমন E-01)। 'i' flag ব্যবহার করায় ছোট/বড় হাতের অক্ষর কাজ করবে।
+            const format1Regex = /^E-\d+$/i; 
+            // ফরম্যাট ২: শুধুমাত্র ৭-সংখ্যার নম্বর (যেমন 2507001)
+            const format2Regex = /^\d{7}$/;
+    
+            if (!format1Regex.test(empId) && !format2Regex.test(empId)) {
+                alert('ভুল আইডি ফরম্যাট!\n\nঅনুগ্রহ করে সঠিক ফরম্যাটে আইডি দিন:\n • ফরম্যাট ১: E-01\n • ফরম্যাট ২: 2507001');
+                return; // ভুল ফরম্যাট হলে ফাংশন থেকে বের হয়ে যাবে
+            }
+        }
+        // --- নতুন কোড শেষ ---
+    
+        // 필수 필드 확인 (নাম, যোগদানের তারিখ, মোট বেতন পূরণ করা হয়েছে কিনা তা যাচাই)
+        if (!profile.empName || !profile.joinDate || !profile.grossSalary) {
+            alert('অনুগ্রহ করে নাম, যোগদানের তারিখ এবং মোট বেতন পূরণ করুন।');
+            return;
+        }
+    
+        // যদি তারিখ খালি থাকে, তবে null হিসেবে সেভ হবে
+        if (!profile.resignationDate) delete profile.resignationDate;
+        if (!profile.lastDayOfJob) delete profile.lastDayOfJob;
+    
+        localStorage.setItem('employeeProfile', JSON.stringify(profile));
+        alert('প্রোফাইল সফলভাবে সেভ হয়েছে!');
+    
+        if (isInitialSetup) {
+            window.location.reload();
+        } else {
+            toggleProfileEdit(false);
+            loadProfile();
+            generateReport();
+        }
+    }
+    
+    function toggleProfileEdit(showEdit) {
+        document.getElementById('profile-view').style.display = showEdit ? 'none' : 'block';
+        document.getElementById('profile-edit').style.display = showEdit ? 'block' : 'none';
+        document.getElementById('data-management-section').style.display = showEdit ? 'none' : 'block';
+    }
+
+// --- আপডেটেড openTab ফাংশন ---
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { 
+            if(tabcontent[i].id !== 'setup-screen') tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tab-link");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        const targetTab = document.getElementById(tabName);
+        if (!targetTab) {
+            console.error(`Tab with name "${tabName}" not found.`);
+            return;
+        }
+        targetTab.style.display = "block";
+        
+        // --- নতুন কোড: ইভেন্ট অবজেক্ট চেক করা ---
+        // যদি সরাসরি ফাংশন কল করা হয় (evt=null), তাহলে evt.currentTarget ব্যবহার করা হবে না
+        if (evt) {
+            evt.currentTarget.className += " active";
+        } else {
+            // যদি পেজ লোডের সময় কল করা হয়, তাহলে onclick অ্যাট্রিবিউট থেকে বাটন খুঁজে বের করা হবে
+            const targetLink = Array.from(tablinks).find(link => link.getAttribute('onclick').includes(`'${tabName}'`));
+            if(targetLink) targetLink.className += " active";
+        }
+        // --- নতুন কোড শেষ ---
+    
+        if (tabName) {
+            localStorage.setItem('lastActiveTab', tabName);
+        }
+    
+        if (tabName === 'duty') updatePunchCardUI();
+    }
+
+    // --- Holiday Calculation ---
+    const getPublicHolidays = (year) => ({
+        '02-21': { type: 'gov_holiday', reason: 'শহীদ দিবস' },
+        '03-17': { type: 'gov_holiday', reason: 'জাতির পিতার জন্মদিন' },
+        '03-26': { type: 'gov_holiday', reason: 'স্বাধীনতা দিবস' },
+        '04-14': { type: 'gov_holiday', reason: 'বাংলা নববর্ষ' },
+        '05-01': { type: 'gov_holiday', reason: 'মে দিবস' },
+        '08-15': { type: 'gov_holiday', reason: 'জাতীয় শোক দিবস' },
+        '12-16': { type: 'gov_holiday', reason: 'বিজয় দিবস' },
+        '12-25': { type: 'gov_holiday', reason: 'বড়দিন' }
+    });
+
+// --- আপডেটেড ফাংশন ---
+// --- চূড়ান্ত আপডেটেড ফাংশন ---
+// --- চূড়ান্ত আপডেটেড ফাংশন ---
+function getHolidayStatus(dateStr) {
+    const customHolidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+    if (customHolidays[dateStr]) {
+        const holidayData = customHolidays[dateStr];
+        // কাস্টম হলিডে থেকে পাওয়া নোটকে reason হিসেবে রিটার্ন করা হচ্ছে
+        if (typeof holidayData === 'object') {
+            return { type: holidayData.type, reason: holidayData.note || null };
+        } else {
+            return { type: holidayData, reason: null };
+        }
+    }
+    
+    const date = new Date(dateStr);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const publicHolidayList = getPublicHolidays(year);
+
+    if (publicHolidayList[`${month}-${day}`]) {
+        return publicHolidayList[`${month}-${day}`];
+    }
+    
+    if (date.getUTCDay() === 5) {
+        return { type: 'friday', reason: null };
+    }
+    
+    return { type: 'workday', reason: null };
+}
+
+    // --- Core Logic: OT, Bills, Bonus ---
+function calculateDailyMetrics(entry) {
+    const profile = JSON.parse(localStorage.getItem('employeeProfile'));
+    let otHours = 0, tiffinBill = 0, nightBill = 0, lateMinutes = 0;
+
+    if (entry.dutyType === 'leave' || !entry.inTime || !entry.outTime) {
+        return { otHours, tiffinBill, nightBill, lateMinutes };
+    }
+
+    const holidayStatus = getHolidayStatus(entry.date);
+    // --- ★★★ আপডেটেড লাইন ★★★ ---
+    // এখানে holidayStatus অবজেক্টের 'type' প্রপার্টি ব্যবহার করা হয়েছে।
+    const isHolidayDuty = ['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type);
+
+    const baseDate = '1970-01-01T';
+    const inDateTime = new Date(`${baseDate}${entry.inTime}:00Z`);
+    let outDateTime = new Date(`${baseDate}${entry.outTime}:00Z`);
+    if (outDateTime <= inDateTime) {
+        outDateTime.setUTCDate(outDateTime.getUTCDate() + 1);
+    }
+
+    if (isHolidayDuty) {
+        // --- হলিডে ডিউটি ওভারটাইম লজিক (অপরিবর্তিত) ---
+        const holidayInTimeStart = new Date(`${baseDate}08:00:00Z`);
+        const holidayInTimeEnd = new Date(`${baseDate}09:00:00Z`);
+        const holidayBaseOutTime = new Date(`${baseDate}17:00:00Z`);
+        const holidayPackageOutTime = new Date(`${baseDate}20:00:00Z`);
+
+        if (inDateTime >= holidayInTimeStart && inDateTime <= holidayInTimeEnd &&
+            outDateTime >= holidayBaseOutTime && outDateTime <= holidayPackageOutTime) {
+            otHours = 5;
+        }
+        else if (inDateTime >= holidayInTimeStart && inDateTime <= holidayInTimeEnd && outDateTime > holidayPackageOutTime) {
+            const outTime8_40 = new Date(`${baseDate}20:40:00Z`);
+            const outTime9_00 = new Date(`${baseDate}21:00:00Z`);
+
+            if (outDateTime < outTime8_40) {
+                otHours = 5;
+            }
+            else if (outDateTime >= outTime8_40 && outDateTime <= outTime9_00) {
+                otHours = 6;
+            }
+            else {
+                otHours = 6;
+                let currentHourStart = new Date(`${baseDate}21:00:00Z`);
+                while (outDateTime >= new Date(currentHourStart.getTime() + 44 * 60000)) {
+                    otHours += 1;
+                    currentHourStart.setUTCHours(currentHourStart.getUTCHours() + 1);
+                }
+            }
+        }
+
+    } else {
+        // --- সাধারণ কার্যদিবসের জন্য চূড়ান্ত এবং স্বয়ংক্রিয় ওভারটাইম লজিক (অপরিবর্তিত) ---
+        const dutyStartTime = new Date(`${baseDate}08:15:00Z`);
+        if (inDateTime > dutyStartTime) {
+            lateMinutes = (inDateTime - dutyStartTime) / 60000;
+        }
+
+        const otStartThreshold = new Date(`${baseDate}17:20:00Z`);
+        if (outDateTime > otStartThreshold) {
+            // প্রথম ৩ ঘণ্টার জন্য নির্ধারিত সময়সীমা
+            if (outDateTime >= new Date(`${baseDate}18:00:00Z`)) otHours = 1;
+            if (outDateTime >= new Date(`${baseDate}21:30:00Z`)) otHours = 2;
+            if (outDateTime >= new Date(`${baseDate}23:30:00Z`)) otHours = 3;
+
+            // মধ্যরাতের পরের ঘণ্টাগুলোর জন্য পুনরাবৃত্তিমূলক (loop) লজিক
+            if (outDateTime >= new Date(`1970-01-02T00:45:00Z`)) {
+                otHours = 4; // ১২:৪৫ এ চতুর্থ ঘণ্টা নিশ্চিত
+
+                // ১:৪৫ থেকে লুপ শুরু
+                let currentHourStart = new Date(`1970-01-02T01:45:00Z`);
+                while (outDateTime >= currentHourStart) {
+                    otHours += 1;
+                    // পরবর্তী ঘণ্টার থ্রেশহোল্ড সেট করুন
+                    currentHourStart.setUTCHours(currentHourStart.getUTCHours() + 1);
+                }
+            }
+        }
+
+        // শুধুমাত্র সাধারণ কার্যদিবসের জন্য টিফিন এবং নাইট বিল গণনা (অপরিবর্তিত)
+        if (outDateTime >= new Date(`${baseDate}21:30:00Z`)) {
+            tiffinBill = 40;
+        }
+        if (profile.grade === 'grade' && outDateTime >= new Date(`1970-01-02T00:00:00Z`)) {
+            nightBill = 80;
+        }
+    }
+
+    return { otHours, tiffinBill, nightBill, lateMinutes };
+}
+
+// --- Punch Card (Check-in/out) Management ---
+    function updatePunchCardUI() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        
+        const todaysEntry = entries.find(e => e.date === todayStr);
+    
+        const checkInBtn = document.getElementById('check-in-btn');
+        const checkOutBtn = document.getElementById('check-out-btn');
+        const activeDutyStatus = document.getElementById('active-duty-status');
+        const timeInfo = document.getElementById('time-info');
+    
+        // --- আপডেটেড কোড: চেক-ইন শুরু এবং শেষের সময় নির্ধারণ ---
+        const checkInStartTime = new Date();
+        checkInStartTime.setHours(6, 0, 0, 0); // সকাল ৬টা
+    
+        const checkInDeadline = new Date();
+        checkInDeadline.setHours(CHECK_IN_DEADLINE_HOUR, CHECK_IN_DEADLINE_MINUTE, 0, 0); // শেষ সময় (যেমন: ৮:২০)
+        // --- আপডেটেড কোড শেষ ---
+    
+        checkInBtn.disabled = true;
+        checkOutBtn.disabled = true;
+        activeDutyStatus.style.display = 'none';
+        if (dutyTimerInterval) clearInterval(dutyTimerInterval);
+    
+        if (todaysEntry) {
+            // যদি আজকের দিনের জন্য একটি এন্ট্রি পাওয়া যায় (এই লজিক অপরিবর্তিত)
+            activeDutyStatus.style.display = 'block';
+            if (todaysEntry.outTime === null) {
+                checkOutBtn.disabled = false;
+                document.getElementById('check-in-time-display').textContent = `চেক-ইন: ${new Date('1970-01-01T' + todaysEntry.inTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true})}`;
+                startDutyTimer(todaysEntry.startTimestamp);
+                timeInfo.innerHTML = `<p><i class="fas fa-info-circle"></i> আপনি এখন একটি ডিউটিতে আছেন।</p>`;
+            } else {
+                document.getElementById('check-in-time-display').textContent = `ইন: ${new Date('1970-01-01T' + todaysEntry.inTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true})}, আউট: ${new Date('1970-01-01T' + todaysEntry.outTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true})}`;
+                document.getElementById('duty-timer').textContent = '';
+                timeInfo.innerHTML = `<p><i class="fas fa-check-circle"></i> আজকের ডিউটি সফলভাবে সম্পন্ন হয়েছে।</p>`;
+            }
+        } 
+        else if (now >= checkInStartTime && now < checkInDeadline) {
+            // যদি আজকের জন্য কোনো এন্ট্রি না থাকে এবং চেক-ইনের সঠিক সময়সীমার মধ্যে থাকে
+            checkInBtn.disabled = false;
+            timeInfo.innerHTML = `<p><i class="fas fa-hourglass-start"></i> আপনি এখন চেক-ইন করতে পারেন। শেষ সময়: ${toBengali(CHECK_IN_DEADLINE_HOUR)}:${toBengali(String(CHECK_IN_DEADLINE_MINUTE).padStart(2, '0'))}।</p>`;
+        } 
+        else {
+            // যদি চেক-ইনের সময় এখনো শুরু না হয় অথবা শেষ হয়ে যায়
+            timeInfo.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> স্বয়ংক্রিয় চেক-ইন এর সময় এখন বন্ধ আছে। প্রয়োজনে ম্যানুয়ালি এন্ট্রি করুন।</p>`;
+        }
+    }
+
+    function checkIn() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const newEntry = {
+            date: todayStr,
+            dutyType: 'general',
+            inTime: now.toTimeString().split(' ')[0],
+            outTime: null,
+            startTimestamp: now.getTime()
+        };
+        const entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        entries.push(newEntry);
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        updatePunchCardUI();
+        generateReport();
+    }
+
+    function checkOut() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const todaysEntry = entries.find(e => e.date === todayStr && e.outTime === null);
+        if (!todaysEntry) return;
+
+        todaysEntry.outTime = now.toTimeString().split(' ')[0];
+        const metrics = calculateDailyMetrics(todaysEntry);
+        Object.assign(todaysEntry, metrics, { isTiffinPaid: false, isNightBillPaid: false });
+        delete todaysEntry.startTimestamp;
+
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        updatePunchCardUI();
+        generateReport();
+    }
+
+    function startDutyTimer(startTimestamp) {
+        if (!startTimestamp) return;
+        dutyTimerInterval = setInterval(() => {
+            const elapsed = new Date().getTime() - startTimestamp;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('duty-timer').textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    // --- Manual Entry Management ---
+    function openManualEntryModal() {
+        const modal = document.getElementById('manual-entry-modal');
+        modal.style.display = 'flex';
+        document.getElementById('manualDate').valueAsDate = new Date();
+        document.getElementById('manualInTime').value = '08:00';
+        document.getElementById('manualOutTime').value = '17:00';
+    }
+    function closeManualEntryModal() { document.getElementById('manual-entry-modal').style.display = 'none'; }
+
+function addManualDuty() {
+    const entry = {
+        date: document.getElementById('manualDate').value,
+        inTime: document.getElementById('manualInTime').value,
+        outTime: document.getElementById('manualOutTime').value,
+    };
+    if (!entry.date || !entry.inTime || !entry.outTime) {
+        alert('অনুগ্রহ করে তারিখ, ইন-টাইম এবং আউট-টাইম পূরণ করুন।');
+        return;
+    }
+
+    // --- নতুন কোড শুরু: ভবিষ্যতের তারিখ ব্লক করা ---
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // টাইম রিসেট করে শুধু তারিখ রাখা হলো
+    const selectedDate = new Date(entry.date + 'T00:00:00Z'); // UTC তে তারিখ তৈরি
+
+    if (selectedDate > today) {
+        alert('ভবিষ্যতের কোনো তারিখের জন্য ডিউটি এন্ট্রি করা যাবে না।');
+        return; // ফাংশন থেকে বের হয়ে যাওয়া
+    }
+    // --- নতুন কোড শেষ ---
+    
+    const metrics = calculateDailyMetrics(entry);
+    const finalEntry = { ...entry, ...metrics, dutyType: 'general', isTiffinPaid: false, isNightBillPaid: false };
+    
+    updateDutyEntry(finalEntry);
+    closeManualEntryModal();
+
+    openTab(null, 'report');
+
+    setTimeout(() => {
+        const row = document.getElementById(`entry-${entry.date}`);
+        if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('flash-effect');
+            row.addEventListener('animationend', () => {
+                row.classList.remove('flash-effect');
+            }, { once: true });
+        }
+    }, 100);
+}
+
+function addLeaveEntry() {
+    const date = document.getElementById('manualDate').value;
+    if (!date) {
+        alert('অনুগ্রহ করে তারিখ পূরণ করুন।');
+        return;
+    }
+
+    // --- নতুন কোড শুরু: ভবিষ্যতের তারিখ ব্লক করা ---
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date + 'T00:00:00Z');
+
+    if (selectedDate > today) {
+        alert('ভবিষ্যতের কোনো তারিখের জন্য ছুটি এন্ট্রি করা যাবে না।');
+        return;
+    }
+    // --- নতুন কোড শেষ ---
+
+    const finalEntry = { date, dutyType: 'leave', inTime: null, outTime: null, otHours: 0, tiffinBill: 0, nightBill: 0, lateMinutes: 0 };
+    
+    updateDutyEntry(finalEntry);
+    closeManualEntryModal();
+
+    openTab(null, 'report');
+
+    setTimeout(() => {
+        const row = document.getElementById(`entry-${date}`);
+        if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('flash-effect');
+            row.addEventListener('animationend', () => {
+                row.classList.remove('flash-effect');
+            }, { once: true });
+        }
+    }, 100);
+}
+
+function deleteDutyEntry() {
+    const dateToDelete = document.getElementById('manualDate').value;
+    if (!dateToDelete) {
+        alert('অনুগ্রহ করে যে তারিখের এন্ট্রি মুছতে চান, সেই তারিখটি সিলেক্ট করুন।');
+        return;
+    }
+
+    if (!confirm(`আপনি কি নিশ্চিত যে ${formatDate(dateToDelete + 'T00:00:00Z')} তারিখের এন্ট্রি মুছে ফেলতে চান? এই প্রক্রিয়াটি ফেরানো সম্ভব নয়।`)) {
+        return;
+    }
+
+    let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+    const updatedEntries = entries.filter(entry => entry.date !== dateToDelete);
+
+    if (entries.length === updatedEntries.length) {
+        alert('এই তারিখের জন্য কোনো এন্ট্রি পাওয়া যায়নি।');
+        return;
+    }
+
+    localStorage.setItem('dutyEntries', JSON.stringify(updatedEntries));
+    
+    alert('এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে।');
+    
+    closeManualEntryModal();
+    generateReport();
+
+    openTab(null, 'report');
+    setTimeout(() => {
+        const row = document.getElementById(`entry-${dateToDelete}`);
+        if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('flash-effect');
+            row.addEventListener('animationend', () => {
+                row.classList.remove('flash-effect');
+            }, { once: true });
+        }
+    }, 100);
+}
+
+    function updateDutyEntry(entry) {
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const index = entries.findIndex(e => e.date === entry.date);
+        if (index > -1) entries[index] = entry;
+        else entries.push(entry);
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        alert(`${formatDate(entry.date + 'T00:00:00Z')} তারিখের তথ্য আপডেট করা হয়েছে।`);
+        generateReport();
+    }
+
+    // --- Holiday Modal Management ---
+    function openHolidayModal() {
+        const modal = document.getElementById('holiday-modal');
+        modal.style.display = 'flex';
+        renderCalendar();
+    }
+    function closeHolidayModal() {
+        document.getElementById('holiday-modal').style.display = 'none';
+        generateReport();
+    }
+
+// --- চূড়ান্ত আপডেটেড ফাংশন ---
+function renderCalendar() {
+    const reportMonth = document.getElementById('reportMonth').value;
+    const [year, month] = reportMonth.split('-').map(Number);
+    document.getElementById('modal-title').textContent = `${new Date(Date.UTC(year, month - 1)).toLocaleString('bn-BD', { month: 'long', year: 'numeric', timeZone: 'UTC' })} মাসের ছুটি`;
+    
+    const calendarEl = document.getElementById('holiday-calendar');
+    calendarEl.innerHTML = '';
+    ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'].forEach(day => {
+        calendarEl.innerHTML += `<div class="calendar-header">${day}</div>`;
+    });
+
+    const firstDayOfMonth = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    for (let i = 0; i < firstDayOfMonth; i++) { calendarEl.appendChild(document.createElement('div')); }
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(Date.UTC(year, month - 1, day));
+        const dateStr = date.toISOString().split('T')[0];
+        const dayEl = document.createElement('div');
+        dayEl.className = 'calendar-day';
+        dayEl.textContent = toBengali(day);
+        dayEl.dataset.date = dateStr;
+
+        // --- সঠিক সমাধান ---
+        const holidayStatus = getHolidayStatus(dateStr); // holidayStatus এখন সবসময় একটি অবজেক্ট
+        dayEl.classList.add(`day-${holidayStatus.type}`); // তাই আমরা নিরাপদে .type ব্যবহার করতে পারি
+        // --- সমাধান শেষ ---
+
+        dayEl.addEventListener('click', (e) => showContextMenu(e, dateStr));
+        calendarEl.appendChild(dayEl);
+    }
+}
+
+    function showContextMenu(event, dateStr) {
+        event.preventDefault();
+        const menu = document.getElementById('calendar-context-menu');
+        const holidayStatus = getHolidayStatus(dateStr);
+
+        document.getElementById('context-menu-date').textContent = new Date(dateStr + 'T00:00:00Z').toLocaleDateString('bn-BD', { dateStyle: 'full', timeZone: 'UTC' });
+        
+        const isHoliday = ['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus);
+        document.getElementById('context-menu-holiday-options').style.display = isHoliday ? 'block' : 'none';
+        document.getElementById('context-menu-workday-options').style.display = !isHoliday ? 'block' : 'none';
+        
+        menu.querySelectorAll('[data-date]').forEach(el => el.dataset.date = dateStr);
+
+        const rect = event.target.getBoundingClientRect();
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        
+        menu.style.display = 'block';
+        const menuWidth = menu.offsetWidth;
+        const menuHeight = menu.offsetHeight;
+
+        let top = rect.bottom + 5;
+        let left = rect.left;
+
+        if (left + menuWidth > screenWidth) left = screenWidth - menuWidth - 5;
+        if (top + menuHeight > screenHeight) top = rect.top - menuHeight - 5;
+        
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+    }
+
+// --- আপডেটেড ফাংশন ---
+    function setDayStatus(dateStr, status) {
+        const customHolidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+        
+        if (status === null) {
+            // স্ট্যাটাস মুছে ফেলার অনুরোধ এলে সরাসরি মুছে ফেলা হবে
+            delete customHolidays[dateStr];
+        } else {
+            let holidayData = { type: status, note: '' }; // ডিফল্ট ডেটা স্ট্রাকচার
+    
+            // যদি উৎসব বা বিশেষ ছুটি হয়, তবে ব্যবহারকারীর কাছে কারণ জানতে চাওয়া হবে
+            if (status === 'factory_holiday' || status === 'special_holiday') {
+                const reason = prompt(`"${status === 'factory_holiday' ? 'উৎসব' : 'বিশেষ'}" ছুটির কারণ বা নোট লিখুন:`);
+                // ব্যবহারকারী যদি কিছু লেখেন বা খালি রেখে OK চাপেন, তবে নোট সেভ হবে
+                if (reason !== null) { // prompt-এ Cancel চাপলে null রিটার্ন হয়
+                    holidayData.note = reason.trim();
+                } else {
+                    // ব্যবহারকারী Cancel চাপলে কোনো পরিবর্তন হবে না
+                    return; 
+                }
+            }
+            
+            // নতুন ডেটা স্ট্রাকচার অনুযায়ী তথ্য সেভ করা হচ্ছে
+            customHolidays[dateStr] = holidayData;
+        }
+        
+        localStorage.setItem('customHolidays', JSON.stringify(customHolidays));
+        
+        // সংশ্লিষ্ট তারিখের ডিউটি এন্ট্রি খুঁজে বের করে পুনরায় গণনা করুন
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const entryIndex = entries.findIndex(e => e.date === dateStr && e.dutyType !== 'leave');
+    
+        if (entryIndex > -1) {
+            // এখানে calculateDailyMetrics ফাংশনটি নতুন getHolidayStatus অনুযায়ী কাজ করবে
+            const updatedMetrics = calculateDailyMetrics(entries[entryIndex]);
+            Object.assign(entries[entryIndex], updatedMetrics);
+            localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        }
+    
+        renderCalendar();
+        generateReport(); // রিপোর্ট রিফ্রেশ করার জন্য এটি জরুরি
+        
+        document.getElementById('calendar-context-menu').style.display = 'none';
+    }
+
+    function resetCurrentMonthHolidays() {
+        if (!confirm('আপনি কি নিশ্চিত যে এই মাসের সকল কাস্টম পরিবর্তন মুছে ফেলতে চান? এর ফলে এই মাসের ডিউটিগুলোর ওভারটাইম পুনরায় গণনা করা হবে।')) return;
+        
+        const reportMonth = document.getElementById('reportMonth').value;
+        
+        const customHolidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+        Object.keys(customHolidays).forEach(date => {
+            if (date.startsWith(reportMonth)) {
+                delete customHolidays[date];
+            }
+        });
+        localStorage.setItem('customHolidays', JSON.stringify(customHolidays));
+
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        entries.forEach(entry => {
+            // এই মাসের সকল ডিউটি এন্ট্রি পুনরায় গণনা করুন (leave ছাড়া)
+            if (entry.date.startsWith(reportMonth) && entry.dutyType !== 'leave') {
+                const newMetrics = calculateDailyMetrics(entry);
+                Object.assign(entry, newMetrics);
+            }
+        });
+        
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+
+        renderCalendar();
+        generateReport();
+        
+        alert('এই মাসের কাস্টম ছুটি রিসেট করা হয়েছে এবং ডিউটি লগ আপডেট করা হয়েছে।');
+    }
+
+// --- মূল লেআউটে ফেরার জন্য generateReport ফাংশন ---
+function generateReport() {
+    const profile = JSON.parse(localStorage.getItem('employeeProfile'));
+    if (!profile) return;
+
+    const reportMonthValue = document.getElementById('reportMonth').value;
+    const [year, month] = reportMonthValue.split('-').map(Number);
+    
+    const allEntries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+    const monthEntries = allEntries.filter(e => e.date.startsWith(reportMonthValue));
+    
+    const entriesMap = new Map(monthEntries.map(e => [e.date, e]));
+
+    let totalOT = 0, totalLate = 0, absentDays = 0, leaveDays = 0;
+    let unpaidTiffinCount = 0, unpaidTiffinTotal = 0;
+    let unpaidNightCount = 0, unpaidNightTotal = 0;
+    const extraDetailsEntries = [];
+    
+    const today_date_obj = new Date();
+    const today_year = today_date_obj.getFullYear();
+    const today_month = today_date_obj.getMonth() + 1;
+    const today_day = today_date_obj.getDate();
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    const holidaysWithReasons = []; 
+    let totalHolidayDuty = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const holidayStatus = getHolidayStatus(dateStr);
+        
+        if (holidayStatus.type !== 'workday' && holidayStatus.type !== 'workday_holiday') {
+            holidaysWithReasons.push({ date: dateStr, ...holidayStatus });
+        }
+
+        const entry = entriesMap.get(dateStr);
+        if (entry) {
+            totalOT += entry.otHours || 0;
+            totalLate += entry.lateMinutes || 0;
+            if (entry.dutyType === 'leave') {
+                leaveDays++;
+            }
+            if (entry.tiffinBill > 0 && !entry.isTiffinPaid) {
+                unpaidTiffinCount++;
+                unpaidTiffinTotal += entry.tiffinBill;
+            }
+            if (entry.nightBill > 0 && !entry.isNightBillPaid) {
+                unpaidNightCount++;
+                unpaidNightTotal += entry.nightBill;
+            }
+            if ((entry.lateMinutes || 0) > 0 || (entry.tiffinBill || 0) > 0 || (entry.nightBill || 0) > 0) {
+                extraDetailsEntries.push(entry);
+            }
+            if (['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type)) {
+                totalHolidayDuty++;
+            }
+        } else {
+            let isPastOrToday = (year < today_year) || (year === today_year && month < today_month) || (year === today_year && month === today_month && day <= today_day);
+            if (isPastOrToday && (holidayStatus.type === 'workday' || holidayStatus.type === 'workday_holiday')) {
+                absentDays++;
+            }
+        }
+    }
+    
+    const breakdown = calculateSalaryBreakdown(profile.grossSalary);
+    const otRate = breakdown.basic > 0 ? (breakdown.basic / 208) * 2 : 0;
+    const totalOTPayment = totalOT * otRate;
+
+    let attendanceBonus = 0;
+    let bonusStatusHTML = '';
+    if (profile.grade === 'grade') {
+        if (absentDays === 0 && leaveDays <= BONUS_LEAVE_LIMIT && totalLate <= 10) {
+            attendanceBonus = 800;
+            bonusStatusHTML = `<span class="bonus-status bonus-eligible">(যোগ্য)</span>`;
+        } else {
+            bonusStatusHTML = `<span class="bonus-status bonus-ineligible">(অযোগ্য)</span>`;
+        }
+    }
+    
+    const payableSalary = parseFloat(profile.grossSalary) + totalOTPayment + attendanceBonus;
+
+    let summaryCardHTML = `
+        <div class="summary-card">
+            <h4><i class="fas fa-receipt"></i>মাসিক সারাংশ (${new Date(Date.UTC(year, month - 1)).toLocaleString('bn-BD', { month: 'long', year: 'numeric', timeZone: 'UTC' })})</h4>
+            <div class="detail-item"><i class="fas fa-hourglass-end"></i><strong>মোট ওভারটাইম:</strong> ${toBengali(totalOT)} ঘণ্টা</div>
+            <div class="detail-item"><i class="fas fa-money-bill-alt"></i><strong>ওভারটাইম বিল:</strong> ${toBengali(totalOTPayment.toFixed(2))} টাকা</div>
+            <div class="detail-item"><i class="fas fa-user-times"></i><strong>মোট অনুপস্থিত:</strong> ${toBengali(absentDays)} দিন</div>
+            <div class="detail-item"><i class="fas fa-plane"></i><strong>মোট ছুটি:</strong> ${toBengali(leaveDays)} দিন</div>
+            ${profile.grade === 'grade' ? `<div class="detail-item"><i class="fas fa-award"></i><strong>হাজিরা বোনাস:</strong> ${toBengali(attendanceBonus)} টাকা ${bonusStatusHTML}</div>` : ''}
+            <div class="detail-item"><i class="fas fa-hand-holding-usd"></i><strong>মাসিক প্রদেয় বেতন:</strong> ${toBengali(payableSalary.toFixed(2))} টাকা</div>
+        </div>`;
+
+    const holidayTypes = {
+        friday: { label: 'শুক্রবার', colorClass: 'day-friday', count: 0, reasons: [] },
+        gov_holiday: { label: 'সরকারি ছুটি', colorClass: 'day-gov_holiday', count: 0, reasons: [] },
+        factory_holiday: { label: 'উৎসব ছুটি', colorClass: 'day-factory_holiday', count: 0, reasons: [] },
+        special_holiday: { label: 'বিশেষ ছুটি', colorClass: 'day-special_holiday', count: 0, reasons: [] },
+    };
+    holidaysWithReasons.forEach(h => {
+        if (holidayTypes[h.type]) {
+            holidayTypes[h.type].count++;
+            if (h.reason) { holidayTypes[h.type].reasons.push({ date: h.date, reason: h.reason }); }
+        }
+    });
+
+    let holidayCardHTML = `
+        <div class="summary-card">
+            <h4><i class="fas fa-calendar-check"></i>মাসিক ছুটির ক্যালেন্ডার</h4>
+            <ul class="holiday-list">`;
+    Object.values(holidayTypes).forEach(holiday => {
+        if (holiday.count > 0) {
+            holidayCardHTML += `<li><span class="color-box ${holiday.colorClass}"></span><strong>${holiday.label}:</strong> ${toBengali(holiday.count)} দিন</li>`;
+            if (holiday.reasons.length > 0) {
+                holiday.reasons.forEach(r => {
+                    holidayCardHTML += `<li class="holiday-reason-item"><span>${formatDate(r.date + 'T00:00:00Z')} - ${r.reason}</span></li>`;
+                });
+            }
+        }
+    });
+    holidayCardHTML += `<li style="margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;"><i class="fas fa-briefcase" style="color: var(--primary-color); margin-right: 8px;"></i><strong>মোট হলিডে ডিউটি:</strong> ${toBengali(totalHolidayDuty)} দিন</li></ul></div>`;
+
+    let billCardHTML = '';
+    if (unpaidTiffinTotal > 0 || (profile.grade === 'grade' && monthEntries.some(e => e.nightBill > 0))) {
+        billCardHTML = `<div class="summary-card"><h4><i class="fas fa-hand-holding-usd"></i>সাপ্তাহিক/মাসিক প্রাপ্য বিল</h4>`;
+        if (unpaidTiffinTotal > 0) billCardHTML += `<div class="detail-item"><i class="fas fa-utensils"></i><strong>বকেয়া টিফিন বিল:</strong> ${toBengali(unpaidTiffinTotal)} টাকা (${toBengali(unpaidTiffinCount)} দিন)</div>`;
+        if (profile.grade === 'grade') {
+            if (unpaidNightTotal > 0) {
+                billCardHTML += `<div class="detail-item"><i class="fas fa-moon"></i><strong>বকেয়া নাইট বিল:</strong> ${toBengali(unpaidNightTotal)} টাকা (${toBengali(unpaidNightCount)} রাত)</div><button class="btn-warning" style="width:auto; padding: 5px 10px; font-size: 12px; margin-top: 10px;" onclick="markNightBillsAsPaid()"><i class="fas fa-check-double"></i>মাসের সব নাইট বিল পরিশোধ করুন</button>`;
+            } else if (monthEntries.some(e => e.nightBill > 0)) {
+                billCardHTML += `<div class="detail-item"><i class="fas fa-check-circle" style="color:var(--success-color);"></i><strong>নাইট বিল:</strong> পরিশোধিত</div>`;
+            }
+        }
+        billCardHTML += `</div>`;
+    }
+
+    let mainTableHTML = `
+        <h4 class="section-title"><i class="fas fa-history"></i>ডিউটি লগ</h4>
+        <table class="report-table">
+            <thead><tr><th>তারিখ</th><th>ধরন</th><th>ইন</th><th>আউট</th><th>ওটি (ঘণ্টা)</th></tr></thead>
+            <tbody>`;
+    let hasRenderedRows = false;
+    for (let day = 1; day <= daysInMonth; day++) {
+        let showRow = (year < today_year) || (year === today_year && month < today_month) || (year === today_year && month === today_month && day <= today_day);
+        if (!showRow) break;
+        hasRenderedRows = true;
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const entry = entriesMap.get(dateStr);
+        const holidayStatus = getHolidayStatus(dateStr);
+        let rowClass = '';
+        let typeDisplay = '';
+        let inTimeStr = '-';
+        let outTimeStr = '-';
+        let otHoursStr = '-';
+        if (entry) {
+            inTimeStr = entry.inTime ? new Date('1970-01-01T' + entry.inTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true}) : '-';
+            outTimeStr = entry.outTime ? new Date('1970-01-01T' + entry.outTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true}) : '-';
+            otHoursStr = toBengali(entry.otHours || 0);
+            const isHoliday = ['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type);
+            if (entry.dutyType === 'leave') { typeDisplay = 'অনুমোদিত ছুটি'; rowClass = 'holiday-row'; }
+            else if (isHoliday) { typeDisplay = 'হলিডে ডিউটি'; rowClass = 'holiday-row'; }
+            else { typeDisplay = 'সাধারণ'; }
+        } else {
+            switch (holidayStatus.type) {
+                case 'workday': case 'workday_holiday': typeDisplay = 'অনুপস্থিত'; rowClass = 'absent-row'; break;
+                case 'friday': typeDisplay = 'শুক্রবার'; rowClass = 'holiday-row'; break;
+                case 'gov_holiday': typeDisplay = 'সরকারি ছুটি'; rowClass = 'holiday-row'; break;
+                case 'factory_holiday': typeDisplay = 'উৎসব ছুটি'; rowClass = 'holiday-row'; break;
+                case 'special_holiday': typeDisplay = 'বিশেষ ছুটি'; rowClass = 'holiday-row'; break;
+            }
+        }
+        mainTableHTML += `<tr class="${rowClass}" id="entry-${dateStr}"><td>${formatDate(dateStr + 'T00:00:00Z')}</td><td>${typeDisplay}</td><td>${inTimeStr}</td><td>${outTimeStr}</td><td>${otHoursStr}</td></tr>`;
+    }
+    if (!hasRenderedRows) { mainTableHTML += `<tr><td colspan="5" style="text-align:center;">এই মাসের জন্য কোনো ডিউটি লগ নেই।</td></tr>`; }
+    mainTableHTML += `</tbody></table>`;
+
+    let extraDetailsHTML = '';
+    if (extraDetailsEntries.length > 0) {
+        extraDetailsHTML = `<button class="btn-info" style="margin-top: 20px;" onclick="toggleExtraDetails(this)"><i class="fas fa-info-circle"></i>অতিরিক্ত বিল ও লেটের বিস্তারিত দেখুন</button>
+        <div id="extra-details-container" style="display:none;">
+            <h4 class="section-title"><i class="fas fa-money-check-alt"></i>অতিরিক্ত বিল ও লেটের বিস্তারিত</h4>
+            ${unpaidTiffinTotal > 0 ? `<button class="btn-success" style="margin-bottom: 10px;" onclick="markTiffinBillsAsPaid()"><i class="fas fa-check"></i>নির্বাচিত টিফিন বিল পরিশোধ করুন</button>` : ''}
+            <table class="report-table">
+                <thead><tr><th>তারিখ</th><th>লেট</th><th>টিফিন বিল</th>${profile.grade ==='grade' ? '<th>নাইট বিল</th>' : ''}</tr></thead>
+                <tbody>${extraDetailsEntries.map(e => `
+                    <tr>
+                        <td>${formatDate(e.date + 'T00:00:00Z')}</td><td>${formatLateTime(e.lateMinutes)}</td>
+                        <td>${e.tiffinBill > 0 ? (e.isTiffinPaid ? '<span class="paid-status"><i class="fas fa-check-circle"></i>পরিশোধিত</span>' : `<div class="tiffin-cell"><input type="checkbox" class="tiffin-checkbox" data-date="${e.date}"><span>${toBengali(e.tiffinBill)} টাকা</span></div>`) : '-'}</td>
+                        ${profile.grade === 'grade' ? `<td>${e.nightBill > 0 ? (e.isNightBillPaid ? '<span class="paid-status"><i class="fas fa-check-circle"></i>পরিশোধিত</span>' : `${toBengali(e.nightBill)} টাকা`) : '-'}</td>` : ''}
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+    }
+
+    document.getElementById('monthlyReport').innerHTML = `${summaryCardHTML}${holidayCardHTML}${billCardHTML}${mainTableHTML}${extraDetailsHTML}`;
+}
+
+    function toggleExtraDetails(button) {
+        const container = document.getElementById('extra-details-container');
+        if (container.style.display === 'none' || container.style.display === '') {
+            container.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-eye-slash"></i>বিস্তারিত লুকান';
+        } else {
+            container.style.display = 'none';
+            button.innerHTML = '<i class="fas fa-info-circle"></i>অতিরিক্ত বিল ও লেটের বিস্তারিত দেখুন';
+        }
+    }
+
+    // --- Bill Payment Management ---
+    function markTiffinBillsAsPaid() {
+        const checkboxes = document.querySelectorAll('.tiffin-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('অনুগ্রহ করে পরিশোধ করার জন্য অন্তত একটি টিফিন বিল সিলেক্ট করুন।'); return;
+        }
+        if (!confirm(`আপনি কি নিশ্চিত যে এই ${toBengali(checkboxes.length)}টি বিল পরিশোধ করা হয়েছে?`)) return;
+
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        checkboxes.forEach(box => {
+            const entry = entries.find(e => e.date === box.dataset.date);
+            if (entry) entry.isTiffinPaid = true;
+        });
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        alert('টিফিন বিলগুলো সফলভাবে পরিশোধিত হিসেবে চিহ্নিত করা হয়েছে।');
+        generateReport();
+    }
+
+    function markNightBillsAsPaid() {
+        const reportMonth = document.getElementById('reportMonth').value;
+        if (!confirm(`আপনি কি নিশ্চিত যে ${new Date(reportMonth + '-01T00:00:00Z').toLocaleString('bn-BD', { month: 'long', timeZone: 'UTC' })} মাসের সকল নাইট বিল পরিশোধ করা হয়েছে?`)) return;
+
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        entries.forEach(entry => {
+            if (entry.date.startsWith(reportMonth) && entry.nightBill > 0) {
+                entry.isNightBillPaid = true;
+            }
+        });
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        alert('নাইট বিলগুলো সফলভাবে পরিশোধিত হিসেবে চিহ্নিত করা হয়েছে।');
+        generateReport();
+    }
+
+    // --- Data Management ---
+// --- ★★★ আপডেট করা সম্পূর্ণ ফাংশন ★★★ ---
+// --- ★★★ exportData ফাংশনের নতুন কোড ★★★ ---
+async function exportData() {
+    // প্রোফাইল এবং ডেটা সংগ্রহ
+    const profileData = localStorage.getItem('employeeProfile');
+    if (!profileData) {
+        alert('এক্সপোর্ট করার মতো কোনো প্রোফাইল ডাটা পাওয়া যায়নি।');
+        return;
+    }
+
+    const profile = JSON.parse(profileData);
+    const entries = JSON.parse(localStorage.getItem('dutyEntries') || '[]');
+    const holidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+
+    // এক্সপোর্টের জন্য ডেটা অবজেক্ট তৈরি
+    const dataToExport = {
+        appInfo: {
+            appName: "Personal Duty Manager",
+            appVersion: "1.0",
+            exportDate: new Date().toISOString(),
+            note: "This is a backup file for the Personal Duty Manager app."
+        },
+        employeeProfile: profile,
+        dutyEntries: entries,
+        customHolidays: holidays
+    };
+
+    // ডেটাকে JSON স্ট্রিং-এ রূপান্তর এবং ফাইলের নাম তৈরি
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const fileName = `duty_manager_backup_${new Date().toISOString().slice(0, 10)}.json`;
+
+    // পরিবেশ শনাক্ত করে ফাইল সেভ বা ডাউনলোড করা
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        // দৃশ্যপট: এটি একটি নেটিভ অ্যাপ (Android/iOS)
+        try {
+            const { Filesystem, Directory, Encoding } = window.Capacitor.Plugins;
+            await Filesystem.writeFile({
+                path: fileName,
+                data: dataStr,
+                directory: Directory.Documents,
+                encoding: Encoding.UTF8,
+            });
+            alert(`ডাটা সফলভাবে এক্সপোর্ট হয়েছে!\nফাইলটি আপনার ডিভাইসের "Documents" ফোল্ডারে "${fileName}" নামে সেভ করা হয়েছে।`);
+        } catch (error) {
+            console.error('নেটিভ ফাইল লেখার সময় সমস্যা:', error);
+            alert('ফাইল সেভ করার সময় একটি সমস্যা হয়েছে। অনুগ্রহ করে অ্যাপের ফাইল স্টোরেজ পারমিশন চেক করুন।');
+        }
+    } else {
+        // দৃশ্যপট: এটি একটি সাধারণ ওয়েব ব্রাউজার
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = fileName;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('ডাটা সফলভাবে এক্সপোর্ট হয়েছে!');
+    }
+}
+
+
+// --- ★★★ আপডেট করা সম্পূর্ণ ফাংশন ★★★ ---
+
+// এই ফাংশনটি JSON ডেটা পাওয়ার পর মূল কাজটি করে।
+// এটিকে আমরা আলাদা করে নিয়েছি যাতে কোড পুনঃব্যবহার করা যায়।
+function processImportedData(jsonData) {
+    try {
+        const data = JSON.parse(jsonData);
+
+        // ভার্সন কন্ট্রোল এবং ফরম্যাট শনাক্তকরণ লজিক (অপরিবর্তিত)
+        let profile, entries, holidays;
+
+        if (data.appInfo && data.appInfo.appVersion === "1.0") {
+            console.log("ভার্সন ১.০ এর ব্যাকআপ ফাইল শনাক্ত হয়েছে।");
+            profile = data.employeeProfile;
+            entries = data.dutyEntries;
+            holidays = data.customHolidays;
+        } else if (data.employeeProfile && Array.isArray(data.dutyEntries)) {
+            console.log("পুরনো ফরম্যাটের (ভার্সনবিহীন) ব্যাকআপ ফাইল শনাক্ত হয়েছে।");
+            profile = data.employeeProfile;
+            entries = data.dutyEntries;
+            holidays = data.customHolidays;
+        } else {
+            alert('ভুল ফরম্যাটের ফাইল। অনুগ্রহ করে একটি সঠিক ব্যাকআপ ফাইল সিলেক্ট করুন।');
+            return;
+        }
+
+        // ডেটা localStorage-এ সেভ করা (অপরিবর্তিত)
+        localStorage.setItem('employeeProfile', JSON.stringify(profile || {}));
+        localStorage.setItem('dutyEntries', JSON.stringify(entries || []));
+        localStorage.setItem('customHolidays', JSON.stringify(holidays || {}));
+
+        alert('ডাটা সফলভাবে ইমপোর্ট হয়েছে! পেজটি এখন রিলোড হবে।');
+        window.location.reload();
+
+    } catch (error) {
+        console.error("ইম্পোর্ট করার সময় এরর:", error);
+        alert('ফাইলটি পড়তে সমস্যা হয়েছে। এটি একটি বৈধ JSON ফাইল নয়।');
+    }
+}
+
+// এটি হলো নতুন মূল importData ফাংশন, যা ব্যবহারকারীকে ফাইল বাছাই করতে বলে।
+// --- ★★★ importData ফাংশনের জন্য নতুন কোড (দুটি অংশ) ★★★ ---
+
+// অংশ ১: ডেটা প্রসেস করার জন্য सहायक ফাংশন
+function processImportedData(jsonData) {
+    try {
+        const data = JSON.parse(jsonData);
+
+        // ভার্সন কন্ট্রোল এবং ফরম্যাট শনাক্তকরণ
+        let profile, entries, holidays;
+        if (data.appInfo && data.appInfo.appVersion === "1.0") {
+            profile = data.employeeProfile;
+            entries = data.dutyEntries;
+            holidays = data.customHolidays;
+        } else if (data.employeeProfile && Array.isArray(data.dutyEntries)) {
+            profile = data.employeeProfile;
+            entries = data.dutyEntries;
+            holidays = data.customHolidays;
+        } else {
+            alert('ভুল ফরম্যাটের ফাইল। অনুগ্রহ করে একটি সঠিক ব্যাকআপ ফাইল সিলেক্ট করুন।');
+            return;
+        }
+
+        // ডেটা localStorage-এ সেভ করা
+        localStorage.setItem('employeeProfile', JSON.stringify(profile || {}));
+        localStorage.setItem('dutyEntries', JSON.stringify(entries || []));
+        localStorage.setItem('customHolidays', JSON.stringify(holidays || {}));
+
+        alert('ডাটা সফলভাবে ইমপোর্ট হয়েছে! পেজটি এখন রিলোড হবে।');
+        window.location.reload();
+    } catch (error) {
+        console.error("ইম্পোর্ট করার সময় এরর:", error);
+        alert('ফাইলটি পড়তে সমস্যা হয়েছে। এটি একটি বৈধ JSON ফাইল নয়।');
+    }
+}
+
+// অংশ ২: মূল importData ফাংশন
+async function importData() {
+    if (!confirm("ডাটা ইমপোর্ট করলে বর্তমান সকল তথ্য মুছে যাবে এবং পেজটি রিলোড হবে। আপনি কি নিশ্চিত?")) {
+        return;
+    }
+
+    // পরিবেশ শনাক্তকরণ
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        // দৃশ্যপট: এটি একটি নেটিভ অ্যাপ (Android/iOS)
+        try {
+            const { FilePicker } = window.Capacitor.Plugins;
+            const result = await FilePicker.pickFiles({
+                types: ['application/json'],
+                readData: true,
+            });
+            if (result.files.length > 0) {
+                const jsonData = atob(result.files[0].data); // Base64 থেকে ডিকোড
+                processImportedData(jsonData);
+            }
+        } catch (error) {
+            console.error('নেটিভ ফাইল পিকারের সমস্যা:', error);
+            alert('ফাইল বাছাই করার সময় একটি সমস্যা হয়েছে।');
+        }
+    } else {
+        // দৃশ্যপট: এটি একটি সাধারণ ওয়েব ব্রাউজার
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                processImportedData(e.target.result);
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+}
+
+
+    function hardReset() {
+        if (confirm("সতর্কবার্তা! আপনি কি নিশ্চিত যে আপনি সকল ডাটা মুছে ফেলতে চান? আপনার প্রোফাইল এবং সকল ডিউটি এন্ট্রি স্থায়ীভাবে মুছে যাবে। এই প্রক্রিয়াটি আর ফেরানো সম্ভব নয়।")) {
+            localStorage.clear();
+            alert("সিস্টেম সফলভাবে রিসেট করা হয়েছে।");
+            window.location.reload();
+        }
+    }
+
+    // --- Global Event Listeners ---
+    window.addEventListener('click', (event) => {
+        const contextMenu = document.getElementById('calendar-context-menu');
+        if (contextMenu && !contextMenu.contains(event.target) && !event.target.closest('.calendar-day')) {
+            contextMenu.style.display = 'none';
+        }
+    });
+// ================== অ্যাকর্ডিয়ন মেন্যুর জন্য জাভাস্ক্রিপ্ট ==================
+document.addEventListener('DOMContentLoaded', () => {
+    const accordions = document.querySelectorAll('.accordion-header');
+
+    accordions.forEach(accordion => {
+        accordion.addEventListener('click', () => {
+            // বাটন এবং কন্টেন্ট এলিমেন্ট সিলেক্ট করা
+            const item = accordion.parentElement;
+            const content = accordion.nextElementSibling;
+
+            // অ্যাকটিভ ক্লাস টগল করা
+            accordion.classList.toggle('active');
+
+            // কন্টেন্টের উচ্চতা পরিবর্তন করা
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                content.style.padding = "0 15px"; // প্যাডিং রিসেট
+            } else {
+                content.style.padding = "15px"; // প্যাডিং যুক্ত করা
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+    });
+});
+// ================== অ্যাকর্ডিয়ন জাভাস্ক্রিপ্ট শেষ ==================
+
+    </script>
+
+</body>
+</html>

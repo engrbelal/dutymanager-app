@@ -1,4 +1,4 @@
-name: Build DutyManager APK with Public Docker Image
+name: Build DutyManager App Bundle
 
 on:
   push:
@@ -17,18 +17,18 @@ jobs:
       uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
 
-    - name: Build APK using Beevelop Docker Image
+    - name: Build Android App Bundle (AAB) using Docker
       run: |
         docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
           cordova create build_folder com.belal.dutymanager DutyManager &&
           cd build_folder &&
           cp ../config.xml ../index.html ../icon.png ../splash.png www/ &&
           cordova platform add android &&
-          cordova build android --release
+          cordova build android --release -- --bundle
         "
       
-    - name: Upload APK as Artifact
+    - name: Upload AAB as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DutyManager-APK
-        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+        name: DutyManager-AAB
+        path: build_folder/platforms/android/app/build/outputs/bundle/release/app-release.aab

@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.belal.dutymanager" version="2.7.7" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    
+    <!-- অ্যাপের নাম এবং ভার্সন -->
+    <name>Duty Manager</name>
+    
+    <!-- অ্যাপের বর্ণনা -->
+    <description>
+        A personal duty and salary management application for employees.
+    </description>
+    
+    <!-- ডেভেলপারের তথ্য -->
+    <author email="engr.mdbelal@gmail.com">
+        Md Belal Hossain
+    </author>
+    
+    <!-- অ্যাপের মূল কন্টেন্ট -->
+    <content src="index.html" />
+    
+    <!-- প্রয়োজনীয় পারমিশন -->
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    
+    <!-- অ্যান্ড্রয়েড প্ল্যাটফর্মের জন্য নির্দিষ্ট সেটিংস -->
+    <platform name="android">
+        <allow-intent href="market:*" />
+        
+        <!-- অ্যাপ আইকন (ফাইলটির নাম icon.png হতে হবে) -->
+        <icon src="icon.png" />
+
+        <!-- স্প্ল্যাশ স্ক্রিন (ঐচ্ছিক, কিন্তু প্রস্তাবিত) -->
+        <!-- <splash src="splash.png" /> -->
+
+    </platform>
+
+    <!-- বিভিন্ন ডিভাইসের জন্য আইকন (ঐচ্ছিক, কিন্তু প্রস্তাবিত) -->
+    <platform name="android">
+        <icon density="ldpi" src="res/icon/android/ldpi.png" />
+        <icon density="mdpi" src="res/icon/android/mdpi.png" />
+        <icon density="hdpi" src="res/icon/android/hdpi.png" />
+        <icon density="xhdpi" src="res/icon/android/xhdpi.png" />
+        <icon density="xxhdpi" src="res/icon/android/xxhdpi.png" />
+        <icon density="xxxhdpi" src="res/icon/android/xxxhdpi.png" />
+    </plarform>
+
+    <!-- Capacitor/Cordova প্লাগইনগুলোর জন্য কনফিগারেশন -->
+    <preference name="ScrollEnabled" value="false" />
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="Backup" value="none" />
+    <preference name="SplashMaintainAspectRatio" value="true" />
+    <preference name="FadeSplashScreenDuration" value="300" />
+    <preference name="SplashShowOnlyFirstTime" value="false" />
+    <preference name="SplashScreen" value="screen" />
+    <preference name="SplashScreenDelay" value="3000" />
+
+</widget>

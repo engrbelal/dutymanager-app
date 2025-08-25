@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>পার্সোনাল ডিউটি ম্যানেজার (চূড়ান্ত সংস্করণ)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- ভবিষ্যতের অনলাইন সিঙ্ক এর জন্য Firebase SDK (এখন কমেন্ট করা আছে) -->
+    <!-- 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    -->
+    <style>
+        :root {
+            --primary-color: #0d47a1; --secondary-color: #1976d2; --accent-color: #42a5f5;
+            --background-color: #f4f6f9; --text-color: #212121; --white-color: #ffffff;
+            --border-color: #e0e0e0; --success-color: #2e7d32; --danger-color: #c62828;
+            --warning-color: #ef6c00; --info-color: #0277bd;
+            --font-family: 'SolaimanLipi', 'Segoe UI', sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-family); background-color: var(--background-color);
+            color: var(--text-color); margin: 0; font-size: 14px; line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 15px auto; padding: 0 10px; }
+        .main-wrapper { display: none; }
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: var(--white-color);
+            padding: 15px; text-align: center; border-radius: 12px 12px 0 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 1.4em; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .tab-menu {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; background-color: var(--white-color);
+            border-radius: 0 0 12px 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); padding: 0; width: 100%;
+        }
+        .tab-link {
+            padding: 10px 5px; cursor: pointer; text-align: center; font-weight: bold; color: var(--primary-color);
+            border-bottom: 3px solid transparent; transition: all 0.3s ease; font-size: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; line-height: 1.2;
+        }
+        .tab-link i { font-size: 16px; }
+        .tab-link.active { color: var(--secondary-color); border-bottom-color: var(--secondary-color); }
+        .tab-link:hover { background-color: #f1f1f1; }
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 600px) { .grid-container { grid-template-columns: 1fr 1fr; } }
+        .input-wrapper { margin-bottom: 10px; }
+        .input-with-icon { position: relative; display: flex; align-items: center; }
+        .input-with-icon .input-icon { position: absolute; left: 12px; color: var(--accent-color); pointer-events: none; }
+        input, select { padding-left: 35px !important; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12px; }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border-color);
+            border-radius: 8px; box-sizing: border-box; font-size: 14px; font-family: var(--font-family);
+        }
+        button {
+            background-color: var(--secondary-color); color: white; padding: 10px 15px; border: none;
+            border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;
+            width: 100%; margin-top: 8px; transition: background-color 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:hover { background-color: var(--primary-color); }
+        button:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+        .btn-success { background-color: var(--success-color); }
+        .btn-success:hover { background-color: #1b5e20; }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-danger:hover { background-color: #b71c1c; }
+        .btn-info { background-color: var(--info-color); }
+        .btn-info:hover { background-color: #01579b; }
+        .btn-warning { background-color: var(--warning-color); }
+        .btn-warning:hover { background-color: #e65100; }
+        .card { padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; position: relative; }
+        .card-header h3 { margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 10px; }
+        .btn-edit-icon {
+            position: absolute; top: -10px; right: -10px; background-color: var(--warning-color);
+            color: var(--white-color); border: none; border-radius: 50%;
+            width: 40px; height: 40px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-edit-icon:hover { transform: scale(1.1); }
+        .details p { margin: 8px 0; font-size: 14px; display: flex; align-items: center; }
+        .details p strong { color: var(--primary-color); min-width: 100px; }
+        .details p i { color: var(--accent-color); margin-right: 10px; width: 20px; text-align: center; }
+        .section-title {
+            margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color);
+            color: var(--primary-color); font-size: 16px; display: flex; align-items: center; gap: 10px;
+        }
+        #setup-screen { padding: 30px 20px; text-align: center; }
+        #setup-screen h2 { color: var(--primary-color); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .report-table th, .report-table td { border: 1px solid var(--border-color); padding: 8px; text-align: center; vertical-align: middle; }
+        .report-table th { background-color: #f5f5f5; font-weight: bold; }
+        .absent-row { background-color: #ffebee; color: var(--danger-color); }
+        .holiday-row { background-color: #e3f2fd; }
+        .paid-status { color: var(--success-color); font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .tiffin-cell { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .summary-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 5px solid var(--secondary-color); margin-bottom: 15px; }
+        .summary-card h4 { margin-top: 0; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+        .detail-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .detail-item i { color: var(--accent-color); width: 20px; text-align: center; }
+        .holiday-list { list-style: none; padding-left: 0; margin: 5px 0 0 0; }
+        .holiday-list li { font-style: normal; color: #555; display: flex; align-items: flex-start; gap: 8px; margin-bottom: 5px; }
+        .holiday-reason { display: block; font-size: 11px; color: #555; margin-left: 25px; margin-top: 2px; }
+        .holiday-list li .color-box { width: 12px; height: 12px; border-radius: 3px; }
+        #data-management-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe; padding: 20px;
+            border: 1px solid #888; width: 90%; max-width: 500px;
+            border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: var(--primary-color); }
+        .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover, .close-btn:focus { color: black; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #holiday-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .calendar-header { font-weight: bold; font-size: 12px; padding-bottom: 5px; }
+        .calendar-day { padding: 8px 0; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; font-size: 13px; border: 1px solid transparent; }
+        @media (max-width: 400px) {
+            .calendar-day { padding: 5px 0; font-size: 12px; }
+            .calendar-header { font-size: 11px; }
+        }
+        .calendar-day:hover { background-color: #e0e0e0; }
+        .day-workday { background-color: #f5f5f5; }
+        .day-workday_holiday { background-color: #c8e6c9; color: var(--success-color); font-weight: bold; }
+        .day-friday { background-color: #ffcdd2; color: var(--danger-color); font-weight: bold; }
+        .day-gov_holiday { background-color: #ffecb3; color: var(--warning-color); font-weight: bold; }
+        .day-factory_holiday { background-color: #d1c4e9; color: #4527a0; font-weight: bold; }
+        .day-special_holiday { background-color: #b3e5fc; color: var(--info-color); font-weight: bold; }
+        .calendar-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 11px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; }
+        #calendar-context-menu {
+            display: none; position: absolute; z-index: 1010;
+            background: var(--white-color); border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 10px; min-width: 220px;
+        }
+        #calendar-context-menu h4 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary-color); }
+        .context-menu-btn {
+            display: flex; align-items: center; width: 100%; text-align: left;
+            padding: 8px 12px; background: none; color: var(--text-color);
+            border: none; border-radius: 6px; font-size: 13px; margin: 2px 0;
+        }
+        .context-menu-btn:hover { background-color: #f1f1f1; }
+        .context-menu-btn i { margin-right: 8px; width: 16px; }
+        #manual-entry-modal .modal-content { max-width: 400px; }
+        #manual-entry-modal .grid-container { grid-template-columns: 1fr; }
+        #manual-entry-modal h4 { font-size: 14px; text-align: center; margin: 15px 0 5px; color: #555; }
+        @keyframes flash-animation { 0% { background-color: #ffc107; } 70% { background-color: #b2ebf2; } 100% { background-color: transparent; } }
+        .flash-effect { animation: flash-animation 3s ease-in-out; }
+        .details-table { display: flex; flex-direction: column; gap: 10px; }
+        .details-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .details-label { display: flex; align-items: center; gap: 10px; color: #333; }
+        .details-value { font-weight: 600; color: var(--primary-color); text-align: right; }
+        .total-row { border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 5px; font-weight: bold; }
+        .total-row .details-label, .total-row .details-value { font-size: 14px; color: var(--success-color); }
+        .holiday-reason-item { font-size: 12px !important; color: #555; padding-left: 25px; }
+        .holiday-reason-item .details-value { font-style: italic; color: #555; }
+        .accordion-item { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .accordion-header {
+            background-color: #ffffff; color: var(--primary-color); cursor: pointer; padding: 15px;
+            width: 100%; border: none; text-align: left; outline: none; font-size: 1em; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s ease;
+        }
+        .accordion-header:hover { background-color: #f7f7f7; }
+        .accordion-header.active .accordion-icon { transform: rotate(180deg); }
+        .accordion-icon { transition: transform 0.3s ease-in-out; }
+        .accordion-content {
+            padding: 0 15px; background-color: white; max-height: 0; overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+        .accordion-content p { margin-bottom: 10px; line-height: 1.7; font-size: 14px; }
+        .accordion-content ul { padding-left: 20px; margin-top: 0; margin-bottom: 15px; }
+        .accordion-content li { margin-bottom: 8px; }
+        .accordion-content code { background-color: #e0e0e0; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="setup-screen" class="tab-content active">
+            <h2><i class="fas fa-rocket"></i>স্বাগতম!</h2>
+            <p>সিস্টেমটি ব্যবহার করার জন্য, অনুগ্রহ করে প্রথমে আপনার প্রোফাইল তৈরি করুন।</p>
+            <div id="setup-form-container"></div>
+            <button class="btn-success" onclick="saveProfile(true)"><i class="fas fa-user-plus"></i>প্রোফাইল তৈরি করুন</button>
+        </div>
+
+        <div class="main-wrapper">
+            <header><h1><i class="fas fa-user-cog"></i>পার্সোনাল ডিউটি ম্যানেজার</h1></header>
+            <div class="tab-menu">
+                <div class="tab-link active" onclick="openTab(event, 'profile')"><i class="fas fa-user-circle"></i> প্রোফাইল</div>
+                <div class="tab-link" onclick="openTab(event, 'duty')"><i class="fas fa-clock"></i> ডিউটি</div>
+                <div class="tab-link" onclick="openTab(event, 'report')"><i class="fas fa-chart-line"></i> রিপোর্ট</div>
+                <div class="tab-link" onclick="openTab(event, 'help')"><i class="fas fa-question-circle"></i> সাহায্য</div>
+            </div>
+
+            <div id="help" class="tab-content">
+                <header style="padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+                    <h2 style="margin: 0; font-size: 1.3em;"><i class="fas fa-book-open"></i> ব্যবহার নির্দেশিকা</h2>
+                </header>
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span><i class="fas fa-rocket"></i> ১. প্রথমবার ব্যবহার এবং প্রোফাইল তৈরি</span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>অ্যাপটি প্রথমবার খোলার পর আপনাকে একটি প্রোফাইল তৈরি করতে হবে। এটি ছাড়া আপনি অ্যাপের মূল ফিচারগুলো ব্যবহার করতে পারবেন না।</p>
+                        <ul>
+                            <li><strong>আইডি নম্বর:</strong> আপনার অফিসিয়াল আইডি কার্ডের নম্বর দিন (যেমন: <code>E-03</code> অথবা <code>2507001</code>)।</li>
+                            <li><strong>নাম:</strong> আপনার পুরো নাম লিখুন।</li>
+                            <li><strong>যোগদানের তারিখ:</strong> চাকরিতে যোগদানের সঠিক তারিখ নির্বাচন করুন।</li>
+                            <li><strong>মোট বেতন (Gross Salary):</strong> আপনার মাসিক মোট বেতন লিখুন।</li>
+                            <li><strong>গ্রেড:</strong> আপনি 'গ্রেড-ভুক্ত' নাকি 'নন-গ্রেড' তা নির্বাচন করুন।</li>
+                            <li><strong>পদত্যাগের তথ্য (ঐচ্ছিক):</strong> যদি আপনি পদত্যাগ করে থাকেন, তবেই এই অংশ পূরণ করুন।</li>
+                            <li>সব তথ্য দেওয়া হলে <strong>"প্রোফাইল তৈরি করুন"</strong> বাটনে ক্লিক করুন।</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span><i class="fas fa-user-circle"></i> ২. প্রোফাইল ট্যাব</span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>এখানে আপনি আপনার ব্যক্তিগত তথ্য, বেতন কাঠামো এবং সার্ভিস বেনিফিট দেখতে পারবেন।</p>
+                        <ul>
+                            <li><strong>প্রোফাইল দেখা:</strong> আপনার সব তথ্য এখানে সুন্দরভাবে সাজানো থাকবে।</li>
+                            <li><strong>এডিট করা:</strong> উপরের ডানদিকের <i class="fas fa-pencil-alt" style="color: var(--warning-color);"></i> (পেন্সিল) আইকনে ক্লিক করে আপনি যেকোনো সময় আপনার প্রোফাইলের তথ্য পরিবর্তন করতে পারবেন।</li>
+                            <li><strong>ডাটা ম্যানেজমেন্ট:</strong>
+                                <ul>
+                                    <li><strong>ডাটা এক্সপোর্ট:</strong> আপনার সব ডাটা (প্রোফাইল, ডিউটি লগ) একটি JSON ফাইলে সেভ করে রাখতে পারবেন।</li>
+                                    <li><strong>ডাটা ইমপোর্ট:</strong> আগে এক্সপোর্ট করা ফাইল থেকে সব ডাটা আবার অ্যাপে ফিরিয়ে আনতে পারবেন।</li>
+                                    <li><strong>সম্পূর্ণ রিসেট:</strong> অ্যাপের সব ডাটা স্থায়ীভাবে মুছে ফেলার জন্য এই বাটন ব্যবহার করুন।</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span><i class="fas fa-clock"></i> ৩. ডিউটি ট্যাব</span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>এই ট্যাবে আপনি প্রতিদিনের ডিউটি শুরু এবং শেষ করতে পারবেন।</p>
+                        <ul>
+                            <li><strong>চেক-ইন:</strong> প্রতিদিন <strong>সকাল ৬টা</strong> থেকে ডিউটিতে প্রবেশের জন্য <strong>"চেক-ইন"</strong> বাটনে ক্লিক করুন।</li>
+                            <li><strong>চেক-আউট:</strong> ডিউটি শেষে <strong>"চেক-আউট"</strong> বাটনে ক্লিক করুন।</li>
+                            <li><strong>ম্যানুয়াল ডিউটি এন্ট্রি:</strong> যদি কোনোদিন চেক-ইন/আউট করতে ভুলে যান, তবে এই বাটন ব্যবহার করুন।</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span><i class="fas fa-chart-line"></i> ৪. রিপোর্ট ট্যাব</span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>এটি অ্যাপের সবচেয়ে গুরুত্বপূর্ণ অংশ। এখানে আপনি আপনার মাসভিত্তিক সবকিছুর বিস্তারিত রিপোর্ট পাবেন।</p>
+                        <ul>
+                            <li><strong>মাস নির্বাচন:</strong> যে মাসের রিপোর্ট দেখতে চান, সেটি নির্বাচন করুন।</li>
+                            <li><strong>মাসিক সারাংশ:</strong> আপনার মোট ওভারটাইম, অনুপস্থিতি, ছুটি এবং প্রাপ্য বেতনের হিসাব।</li>
+                            <li><strong>মাসিক ছুটির ক্যালেন্ডার:</strong> মাসের সকল ছুটির তালিকা এবং কারণ।</li>
+                            <li><strong>ডিউটি লগ:</strong> মাসের প্রতিদিনের ডিউটির বিস্তারিত তালিকা।</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span><i class="fas fa-calendar-alt"></i> ৫. ছুটির ক্যালেন্ডার ম্যানেজ করা</span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>রিপোর্ট ট্যাবের <strong>"ছুটির ক্যালেন্ডার"</strong> বাটনটি ব্যবহার করে আপনি যেকোনো মাসের ছুটির দিনগুলো নিজের মতো করে সাজাতে পারবেন।</p>
+                        <ul>
+                            <li><strong>ছুটি যোগ করা:</strong> কার্যদিবসে ক্লিক করে সেটিকে 'সরকারি', 'উৎসব' বা 'বিশেষ' ছুটি হিসেবে চিহ্নিত করুন।</li>
+                            <li><strong>ছুটি বাতিল করা:</strong> ছুটি হিসেবে চিহ্নিত দিনকে আবার কার্যদিবসে পরিবর্তন করুন।</li>
+                            <li><strong>রিসেট করা:</strong> মাসের কাস্টম পরিবর্তনগুলো মুছে ফেলতে **"এই মাসের পরিবর্তন রিসেট করুন"** বাটন ব্যবহার করুন।</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="profile" class="tab-content">
+                <div id="profile-view"></div>
+                <div id="profile-edit" style="display:none;">
+                    <h3 class="section-title"><i class="fas fa-edit"></i>প্রোফাইল এডিট করুন</h3>
+                    <div id="edit-form-container"></div>
+                    <div class="grid-container">
+                        <button class="btn-success" onclick="saveProfile(false)"><i class="fas fa-save"></i>আপডেট করুন</button>
+                        <button class="btn-danger" onclick="toggleProfileEdit(false)"><i class="fas fa-times-circle"></i>বাতিল</button>
+                    </div>
+                </div>
+                <div id="data-management-section">
+                    <h4 class="section-title"><i class="fas fa-database"></i>ডাটা ম্যানেজমেন্ট</h4>
+                    <div class="grid-container">
+                        <button class="btn-success" onclick="exportData()"><i class="fas fa-download"></i> ডাটা এক্সপোর্ট</button>
+                        <button class="btn-info" onclick="importData()"><i class="fas fa-upload"></i> ডাটা ইমপোর্ট</button>
+                        <button class="btn-danger" onclick="hardReset()"><i class="fas fa-power-off"></i> সম্পূর্ণ রিসেট</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="duty" class="tab-content">
+                <h2 class="section-title" style="border-top:none; padding-top:0;"><i class="fas fa-fingerprint"></i> আজকের ডিউটি</h2>
+                <div class="card">
+                    <div id="active-duty-status" style="display:none;">
+                        <p id="check-in-time-display"></p>
+                        <p>ডিউটির সময়কাল: <span id="duty-timer">00:00:00</span></p>
+                    </div>
+                    <div class="grid-container">
+                        <button id="check-in-btn" class="btn-success" onclick="checkIn()"><i class="fas fa-play-circle"></i> চেক-ইন</button>
+                        <button id="check-out-btn" class="btn-danger" onclick="checkOut()"><i class="fas fa-stop-circle"></i> চেক-আউট</button>
+                    </div>
+                    <div id="time-info" style="text-align:center; margin-top:15px; font-size:13px;"></div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn-warning" onclick="openManualEntryModal()"><i class="fas fa-edit"></i> ম্যানুয়াল ডিউটি এন্ট্রি</button>
+                </div>
+            </div>
+
+            <div id="report" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div class="input-wrapper" style="flex-grow: 1; min-width: 150px;">
+                        <label for="reportMonth">মাস নির্বাচন করুন</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-week input-icon"></i>
+                            <input type="month" id="reportMonth" onchange="generateReport()">
+                        </div>
+                    </div>
+                    <button class="btn-info" onclick="openHolidayModal()" style="width: auto; padding: 8px 12px; font-size: 12px;"><i class="fas fa-calendar-alt"></i> ছুটির ক্যালেন্ডার</button>
+                </div>
+                <div id="monthlyReport" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="manual-entry-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>ম্যানুয়াল এন্ট্রি</h3>
+                <span class="close-btn" onclick="closeManualEntryModal()">&times;</span>
+            </div>
+            <div class="input-wrapper" style="margin-bottom: 15px;">
+                <label for="manualDate">তারিখ</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-day input-icon"></i>
+                    <input type="date" id="manualDate">
+                </div>
+            </div>
+            <h4>ভুলে যাওয়া ডিউটি এন্ট্রি করুন</h4>
+            <div class="grid-container">
+                <div class="input-wrapper">
+                    <label for="manualInTime">ইন-টাইম</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-sign-in-alt input-icon"></i>
+                        <input type="time" id="manualInTime">
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label for="manualOutTime">আউট-টাইম</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-sign-out-alt input-icon"></i>
+                        <input type="time" id="manualOutTime">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-success" onclick="addManualDuty()"><i class="fas fa-briefcase"></i> ডিউটি যোগ করুন</button>
+            <hr style="margin: 20px 0; border-color: var(--border-color);">
+            <h4>অন্যান্য অপশন</h4>
+            <div class="grid-container">
+                <button class="btn-info" onclick="addLeaveEntry()"><i class="fas fa-plane-departure"></i> অনুমোদিত ছুটি যোগ করুন</button>
+                <button class="btn-danger" onclick="deleteDutyEntry()"><i class="fas fa-trash-alt"></i> এই দিনের এন্ট্রি মুছুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="holiday-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title"></h3>
+                <span class="close-btn" onclick="closeHolidayModal()">&times;</span>
+            </div>
+            <div id="holiday-calendar"></div>
+            <div class="calendar-legend">
+                <div class="legend-item"><span class="legend-color day-workday"></span>কার্যদিবস</div>
+                                <div class="legend-item"><span class="legend-color day-friday"></span>শুক্রবার</div>
+                <div class="legend-item"><span class="legend-color day-gov_holiday"></span>সরকারি</div>
+                <div class="legend-item"><span class="legend-color day-factory_holiday"></span>উৎসব</div>
+                <div class="legend-item"><span class="legend-color day-special_holiday"></span>বিশেষ</div>
+                <div class="legend-item"><span class="legend-color day-workday_holiday"></span>কার্যদিবস (ছুটি)</div>
+            </div>
+            <button class="btn-danger" style="margin-top: 20px;" onclick="resetCurrentMonthHolidays()"><i class="fas fa-undo"></i> এই মাসের পরিবর্তন রিসেট করুন</button>
+        </div>
+    </div>
+
+    <div id="calendar-context-menu">
+        <h4 id="context-menu-date"></h4>
+        <div id="context-menu-holiday-options">
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'workday_holiday')"><i class="fas fa-briefcase" style="color: var(--success-color);"></i> কার্যদিবস করুন</button>
+        </div>
+        <div id="context-menu-workday-options">
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'gov_holiday')"><i class="fas fa-flag" style="color: var(--warning-color);"></i> সরকারি ছুটি</button>
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'factory_holiday')"><i class="fas fa-industry" style="color: #4527a0;"></i> উৎসব ছুটি</button>
+            <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, 'special_holiday')"><i class="fas fa-star" style="color: var(--info-color);"></i> বিশেষ ছুটি</button>
+        </div>
+        <hr style="margin: 5px 0;">
+        <button class="context-menu-btn" data-date="" onclick="setDayStatus(this.dataset.date, null)"><i class="fas fa-undo" style="color: #757575;"></i> ডিফল্ট করুন</button>
+    </div>
+
+<script>
+    // =================================================================================
+    // ==================== ভবিষ্যতের অনলাইন সিঙ্ক এর জন্য প্রস্তুতি =======================
+    // =================================================================================
+
+    const AppConfig = {
+        isOnlineSyncEnabled: false, 
+        firebaseConfig: {
+            // apiKey: "...", authDomain: "...", projectId: "...",
+            // storageBucket: "...", messagingSenderId: "...", appId: "..."
+        }
+    };
+
+    let firebaseApp = null, firestoreDb = null, auth = null, currentUser = null;
+
+    function initializeFirebase() {
+        if (AppConfig.isOnlineSyncEnabled && typeof firebase !== 'undefined') {
+            try {
+                firebaseApp = firebase.initializeApp(AppConfig.firebaseConfig);
+                firestoreDb = firebase.firestore();
+                auth = firebase.auth();
+                console.log("Firebase সফলভাবে চালু হয়েছে।");
+                auth.onAuthStateChanged(user => {
+                    currentUser = user ? user : null;
+                    console.log(user ? `ব্যবহারকারী লগইন করেছেন: ${user.uid}`: "ব্যবহারকারী লগ আউট করেছেন।");
+                });
+            } catch (error) {
+                console.error("Firebase চালু করার সময় সমস্যা:", error);
+                AppConfig.isOnlineSyncEnabled = false;
+            }
+        }
+    }
+
+    // =================================================================================
+    // ==================== মূল অ্যাপ্লিকেশনের কোড শুরু =========================
+    // =================================================================================
+
+    const CHECK_IN_DEADLINE_HOUR = 8;
+    const CHECK_IN_DEADLINE_MINUTE = 20;
+    const BONUS_LEAVE_LIMIT = 1;
+    let dutyTimerInterval = null;
+
+    const toBengali = (num) => {
+        if (num === null || num === undefined || num === '') return '';
+        const parsedNum = Number(num);
+        return isNaN(parsedNum) ? num : parsedNum.toLocaleString('bn-BD', { useGrouping: false, maximumFractionDigits: 2 });
+    };
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = String(date.getUTCFullYear()).slice(-2);
+        return `${toBengali(day)}/${toBengali(month)}/${toBengali(year)}`;
+    };
+    const formatLateTime = (minutes) => {
+        if (!minutes || minutes <= 0) return toBengali(0);
+        const roundedMinutes = Math.round(minutes);
+        if (roundedMinutes < 60) return `${toBengali(roundedMinutes)} মিনিট`;
+        const hours = Math.floor(roundedMinutes / 60);
+        const remainingMinutes = roundedMinutes % 60;
+        return `${toBengali(hours)} ঘণ্টা ${toBengali(remainingMinutes)} মিনিট`;
+    };
+
+    function getProfileFormHTML() {
+        return `
+            <div class="grid-container">
+                <div class="input-wrapper"><label for="empId">আইডি নম্বর</label><div class="input-with-icon"><i class="fas fa-id-badge input-icon"></i><input type="text" id="empId" placeholder="যেমন: E-03 বা 2507010"></div></div>
+                <div class="input-wrapper"><label for="empName">নাম</label><div class="input-with-icon"><i class="fas fa-user input-icon"></i><input type="text" id="empName" placeholder="আপনার নাম"></div></div>
+                <div class="input-wrapper"><label for="joinDate">যোগদানের তারিখ</label><div class="input-with-icon"><i class="fas fa-calendar-check input-icon"></i><input type="date" id="joinDate"></div></div>
+                <div class="input-wrapper"><label for="grossSalary">মোট বেতন (Gross Salary)</label><div class="input-with-icon"><i class="fas fa-wallet input-icon"></i><input type="number" id="grossSalary" placeholder=""></div></div>
+                <div class="input-wrapper"><label for="grade">কর্মচারীর গ্রেড</label><div class="input-with-icon"><i class="fas fa-layer-group input-icon"></i><select id="grade"><option value="non-grade">নন-গ্রেড</option><option value="grade">গ্রেড-ভুক্ত</option></select></div></div>
+            </div>
+            <h4 class="section-title" style="margin-top: 25px; font-size: 14px;"><i class="fas fa-user-slash"></i>পদত্যাগের তথ্য (ঐচ্ছিক)</h4>
+            <p style="font-size: 12px; color: #666; margin-top: -10px; margin-bottom: 15px;">যদি কর্মচারী পদত্যাগ করে থাকেন, তবেই এই অংশ পূরণ করুন।</p>
+            <div class="grid-container">
+                <div class="input-wrapper"><label for="resignationDate">পদত্যাগপত্র জমা দেওয়ার তারিখ</label><div class="input-with-icon"><i class="fas fa-file-signature input-icon"></i><input type="date" id="resignationDate"></div></div>
+                <div class="input-wrapper"><label for="lastDayOfJob">চাকরির শেষ দিন</label><div class="input-with-icon"><i class="fas fa-calendar-times input-icon"></i><input type="date" id="lastDayOfJob"></div></div>
+            </div>`;
+    }
+
+    function calculateSalaryBreakdown(gross) {
+        if (!gross || gross <= 0) return { basic: 0, houseRent: 0, medical: 0, transport: 0, food: 0 };
+        const medical = 750, transport = 450, food = 1250, houseRentRatio = 0.50;
+        const basic = (gross - medical - transport - food) / (1 + houseRentRatio);
+        const houseRent = basic * houseRentRatio;
+        return { basic: Math.round(basic), houseRent: Math.round(houseRent), medical, transport, food };
+    }
+
+    function loadProfile() {
+        const profile = JSON.parse(localStorage.getItem("employeeProfile"));
+        if (!profile) return;
+        const container = document.getElementById("profile-edit");
+        container.querySelector("#empId").value = profile.empId;
+        container.querySelector("#empName").value = profile.empName;
+        container.querySelector("#joinDate").value = profile.joinDate;
+        container.querySelector("#grossSalary").value = profile.grossSalary;
+        container.querySelector("#grade").value = profile.grade;
+        container.querySelector("#resignationDate").value = profile.resignationDate || "";
+        container.querySelector("#lastDayOfJob").value = profile.lastDayOfJob || "";
+        const breakdown = calculateSalaryBreakdown(profile.grossSalary);
+        const otRate = breakdown.basic > 0 ? toBengali(parseFloat(((breakdown.basic / 208) * 2).toFixed(2))) : toBengali(0);
+        const serviceBenefit = calculateServiceBenefit(profile);
+        let serviceBenefitHTML = serviceBenefit ? `<h4 class="section-title"><i class="fas fa-gift"></i>সার্ভিস বেনিফিট</h4><div class="details"><p><i class="fas fa-money-bill-wave"></i><strong>প্রাপ্য টাকা:</strong> ${toBengali(serviceBenefit.amount)} টাকা</p><p><i class="fas fa-info-circle"></i><strong>স্ট্যাটাস:</strong> ${serviceBenefit.status}</p></div>` : "";
+        const viewHTML = `
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-user-tie"></i>${profile.empName || "প্রোফাইল"}</h3><button class="btn-edit-icon" onclick="toggleProfileEdit(true)" title="প্রোফাইল এডিট করুন"><i class="fas fa-pencil-alt"></i></button></div>
+                <div class="details">
+                    <p><i class="fas fa-id-card"></i><strong>আইডি:</strong> ${toBengali(profile.empId)}</p><p><i class="fas fa-layer-group"></i><strong>গ্রেড:</strong> ${profile.grade === "grade" ? "গ্রেড-ভুক্ত" : "নন-গ্রেড"}</p>
+                    <p><i class="fas fa-calendar-alt"></i><strong>যোগদান:</strong> ${new Date(profile.joinDate).toLocaleDateString("bn-BD", { timeZone: "UTC" })}</p><p><i class="fas fa-hourglass-half"></i><strong>ওটি রেট:</strong> ${otRate} টাকা/ঘণ্টা</p>
+                </div>
+                <h4 class="section-title"><i class="fas fa-file-invoice-dollar"></i>বেতন কাঠামো</h4>
+                <div class="details">
+                    <p><i class="fas fa-money-bill-wave"></i><strong>মূল বেতন:</strong> ${toBengali(breakdown.basic)} টাকা</p><p><i class="fas fa-home"></i><strong>বাড়ি ভাড়া:</strong> ${toBengali(breakdown.houseRent)} টাকা</p>
+                    <p><i class="fas fa-utensils"></i><strong>খাদ্য ভাতা:</strong> ${toBengali(breakdown.food)} টাকা</p><p><i class="fas fa-briefcase-medical"></i><strong>চিকিৎসা:</strong> ${toBengali(breakdown.medical)} টাকা</p>
+                    <p><i class="fas fa-bus"></i><strong>যাতায়াত:</strong> ${toBengali(breakdown.transport)} টাকা</p><p><i class="fas fa-wallet"></i><strong>মোট বেতন:</strong> ${toBengali(profile.grossSalary)} টাকা</p>
+                </div>
+                ${serviceBenefitHTML}
+            </div>`;
+        document.getElementById("profile-view").innerHTML = viewHTML;
+    }
+
+    function calculateServiceBenefit(profile) {
+        if (!profile.joinDate) return null;
+        const joinDate = new Date(profile.joinDate);
+        const endDate = profile.lastDayOfJob ? new Date(profile.lastDayOfJob) : new Date();
+        let yearsOfService = endDate.getFullYear() - joinDate.getFullYear();
+        const m = endDate.getMonth() - joinDate.getMonth();
+        if (m < 0 || (m === 0 && endDate.getDate() < joinDate.getDate())) yearsOfService--;
+        if (yearsOfService < 5) return null;
+        const breakdown = calculateSalaryBreakdown(profile.grossSalary);
+        const basicSalary = breakdown.basic;
+        let initialBenefitAmount = (yearsOfService >= 10) ? (basicSalary * yearsOfService) : ((basicSalary / 2) * yearsOfService);
+        let penaltyAmount = 0;
+        let statusMessage = "নিয়ম অনুযায়ী প্রাপ্য";
+        if (profile.resignationDate && profile.lastDayOfJob) {
+            const noticePeriodInDays = (new Date(profile.lastDayOfJob) - new Date(profile.resignationDate)) / 86400000;
+            if (noticePeriodInDays < 30) { penaltyAmount = basicSalary * 2; statusMessage = "নোটিশ না দেওয়ায় ২ বছরের টাকা কর্তন"; }
+            else if (noticePeriodInDays < 60) { penaltyAmount = basicSalary * 1; statusMessage = "১ মাস নোটিশ দেওয়ায় ১ বছরের টাকা কর্তন"; }
+        }
+        return { amount: Math.round(initialBenefitAmount - penaltyAmount), status: statusMessage };
+    }
+
+    function saveProfile(isInitialSetup) {
+        const container = isInitialSetup ? document.getElementById('setup-form-container') : document.getElementById('profile-edit');
+        const profile = {
+            empId: container.querySelector('#empId').value,
+            empName: container.querySelector('#empName').value,
+            joinDate: container.querySelector('#joinDate').value,
+            grossSalary: container.querySelector('#grossSalary').value,
+            grade: container.querySelector('#grade').value,
+            resignationDate: container.querySelector('#resignationDate').value || null,
+            lastDayOfJob: container.querySelector('#lastDayOfJob').value || null,
+        };
+        if (isInitialSetup) {
+            const empId = profile.empId.trim();
+            if (!/^E-\d+$/i.test(empId) && !/^\d{7}$/.test(empId)) {
+                alert('ভুল আইডি ফরম্যাট!\n\nঅনুগ্রহ করে সঠিক ফরম্যাটে আইডি দিন:\n • ফরম্যাট ১: E-01\n • ফরম্যাট ২: 2507001');
+                return;
+            }
+        }
+        if (!profile.empName || !profile.joinDate || !profile.grossSalary) {
+            alert('অনুগ্রহ করে নাম, যোগদানের তারিখ এবং মোট বেতন পূরণ করুন।');
+            return;
+        }
+        if (!profile.resignationDate) delete profile.resignationDate;
+        if (!profile.lastDayOfJob) delete profile.lastDayOfJob;
+        
+        // মূল ডাটা লোকাল স্টোরেজে সেভ করা
+        localStorage.setItem('employeeProfile', JSON.stringify(profile));
+        
+        // *** আমাদের নতুন কোড ***
+        // স্থায়ী ব্যাকআপ ফাইল আপডেট করার জন্য ফাংশন কল করা
+        saveAllDataToPermanentStorage(); 
+    
+        alert('প্রোফাইল সফলভাবে সেভ হয়েছে!');
+        if (isInitialSetup) {
+            window.location.reload();
+        } else {
+            toggleProfileEdit(false);
+            loadProfile();
+            generateReport();
+        }
+    }
+
+    function toggleProfileEdit(showEdit) {
+        document.getElementById('profile-view').style.display = showEdit ? 'none' : 'block';
+        document.getElementById('profile-edit').style.display = showEdit ? 'block' : 'none';
+        document.getElementById('data-management-section').style.display = showEdit ? 'none' : 'block';
+    }
+
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) if(tabcontent[i].id !== 'setup-screen') tabcontent[i].style.display = "none";
+        tablinks = document.getElementsByClassName("tab-link");
+        for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+        const targetTab = document.getElementById(tabName);
+        if (!targetTab) { console.error(`Tab with name "${tabName}" not found.`); return; }
+        targetTab.style.display = "block";
+        if (evt) evt.currentTarget.className += " active";
+        else {
+            const targetLink = Array.from(tablinks).find(link => link.getAttribute('onclick').includes(`'${tabName}'`));
+            if(targetLink) targetLink.className += " active";
+        }
+        if (tabName) localStorage.setItem('lastActiveTab', tabName);
+        if (tabName === 'duty') updatePunchCardUI();
+    }
+
+    const getPublicHolidays = (year) => ({
+        '02-21': { type: 'gov_holiday', reason: 'শহীদ দিবস' }, '03-17': { type: 'gov_holiday', reason: 'জাতির পিতার জন্মদিন' },
+        '03-26': { type: 'gov_holiday', reason: 'স্বাধীনতা দিবস' }, '04-14': { type: 'gov_holiday', reason: 'বাংলা নববর্ষ' },
+        '05-01': { type: 'gov_holiday', reason: 'মে দিবস' }, '08-15': { type: 'gov_holiday', reason: 'জাতীয় শোক দিবস' },
+        '12-16': { type: 'gov_holiday', reason: 'বিজয় দিবস' }, '12-25': { type: 'gov_holiday', reason: 'বড়দিন' }
+    });
+
+    function getHolidayStatus(dateStr) {
+        const customHolidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+        if (customHolidays[dateStr]) {
+            const holidayData = customHolidays[dateStr];
+            return (typeof holidayData === 'object') ? { type: holidayData.type, reason: holidayData.note || null } : { type: holidayData, reason: null };
+        }
+        const date = new Date(dateStr);
+        const publicHolidayList = getPublicHolidays(date.getUTCFullYear());
+        const monthDay = `${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+        if (publicHolidayList[monthDay]) return publicHolidayList[monthDay];
+        return date.getUTCDay() === 5 ? { type: 'friday', reason: null } : { type: 'workday', reason: null };
+    }
+
+    function calculateDailyMetrics(entry) {
+        const profile = JSON.parse(localStorage.getItem('employeeProfile'));
+        let otHours = 0, tiffinBill = 0, nightBill = 0, lateMinutes = 0;
+        if (entry.dutyType === 'leave' || !entry.inTime || !entry.outTime) return { otHours, tiffinBill, nightBill, lateMinutes };
+        const holidayStatus = getHolidayStatus(entry.date);
+        const isHolidayDuty = ['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type);
+        const baseDate = '1970-01-01T';
+        const inDateTime = new Date(`${baseDate}${entry.inTime}:00Z`);
+        let outDateTime = new Date(`${baseDate}${entry.outTime}:00Z`);
+        if (outDateTime <= inDateTime) outDateTime.setUTCDate(outDateTime.getUTCDate() + 1);
+        if (isHolidayDuty) {
+            const holidayInTimeStart = new Date(`${baseDate}07:00:00Z`);
+            const holidayInTimeEnd = new Date(`${baseDate}09:00:00Z`);
+            const holidayBaseOutTime = new Date(`${baseDate}17:00:00Z`);
+            const holidayPackageOutTime = new Date(`${baseDate}20:00:00Z`);
+            if (inDateTime >= holidayInTimeStart && inDateTime <= holidayInTimeEnd && outDateTime >= holidayBaseOutTime && outDateTime <= holidayPackageOutTime) otHours = 5;
+            else if (inDateTime >= holidayInTimeStart && inDateTime <= holidayInTimeEnd && outDateTime > holidayPackageOutTime) {
+                const outTime8_40 = new Date(`${baseDate}20:40:00Z`), outTime9_00 = new Date(`${baseDate}21:00:00Z`);
+                if (outDateTime < outTime8_40) otHours = 5;
+                else if (outDateTime >= outTime8_40 && outDateTime <= outTime9_00) otHours = 6;
+                else {
+                    otHours = 6;
+                    let currentHourStart = new Date(`${baseDate}21:00:00Z`);
+                    while (outDateTime >= new Date(currentHourStart.getTime() + 44 * 60000)) {
+                        otHours++;
+                        currentHourStart.setUTCHours(currentHourStart.getUTCHours() + 1);
+                    }
+                }
+            }
+        } else {
+            const dutyStartTime = new Date(`${baseDate}08:15:00Z`);
+            if (inDateTime > dutyStartTime) lateMinutes = (inDateTime - dutyStartTime) / 60000;
+            const otStartThreshold = new Date(`${baseDate}17:20:00Z`);
+            if (outDateTime > otStartThreshold) {
+                if (outDateTime >= new Date(`${baseDate}18:00:00Z`)) otHours = 1;
+                if (outDateTime >= new Date(`${baseDate}21:30:00Z`)) otHours = 2;
+                if (outDateTime >= new Date(`${baseDate}23:30:00Z`)) otHours = 3;
+                if (outDateTime >= new Date(`1970-01-02T00:45:00Z`)) {
+                    otHours = 4;
+                    let currentHourStart = new Date(`1970-01-02T01:45:00Z`);
+                    while (outDateTime >= currentHourStart) {
+                        otHours++;
+                        currentHourStart.setUTCHours(currentHourStart.getUTCHours() + 1);
+                    }
+                }
+            }
+            if (outDateTime >= new Date(`${baseDate}21:30:00Z`)) tiffinBill = 40;
+            if (profile.grade === 'grade' && outDateTime >= new Date(`1970-01-02T00:00:00Z`)) nightBill = 80;
+        }
+        return { otHours, tiffinBill, nightBill, lateMinutes };
+    }
+
+    function updatePunchCardUI() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const todaysEntry = entries.find(e => e.date === todayStr);
+        const checkInBtn = document.getElementById('check-in-btn'), checkOutBtn = document.getElementById('check-out-btn');
+        const activeDutyStatus = document.getElementById('active-duty-status'), timeInfo = document.getElementById('time-info');
+        const checkInStartTime = new Date(); checkInStartTime.setHours(6, 0, 0, 0);
+        const checkInDeadline = new Date(); checkInDeadline.setHours(CHECK_IN_DEADLINE_HOUR, CHECK_IN_DEADLINE_MINUTE, 0, 0);
+        checkInBtn.disabled = true; checkOutBtn.disabled = true; activeDutyStatus.style.display = 'none';
+        if (dutyTimerInterval) clearInterval(dutyTimerInterval);
+        if (todaysEntry) {
+            activeDutyStatus.style.display = 'block';
+            if (todaysEntry.outTime === null) {
+                checkOutBtn.disabled = false;
+                document.getElementById('check-in-time-display').textContent = `চেক-ইন: ${new Date('1970-01-01T' + todaysEntry.inTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true})}`;
+                startDutyTimer(todaysEntry.startTimestamp);
+                timeInfo.innerHTML = `<p><i class="fas fa-info-circle"></i> আপনি এখন একটি ডিউটিতে আছেন।</p>`;
+            } else {
+                document.getElementById('check-in-time-display').textContent = `ইন: ${new Date('1970-01-01T' + todaysEntry.inTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true})}, আউট: ${new Date('1970-01-01T' + todaysEntry.outTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true})}`;
+                document.getElementById('duty-timer').textContent = '';
+                timeInfo.innerHTML = `<p><i class="fas fa-check-circle"></i> আজকের ডিউটি সফলভাবে সম্পন্ন হয়েছে।</p>`;
+            }
+        } else if (now >= checkInStartTime && now < checkInDeadline) {
+            checkInBtn.disabled = false;
+            timeInfo.innerHTML = `<p><i class="fas fa-hourglass-start"></i> আপনি এখন চেক-ইন করতে পারেন। শেষ সময়: ${toBengali(CHECK_IN_DEADLINE_HOUR)}:${toBengali(String(CHECK_IN_DEADLINE_MINUTE).padStart(2, '0'))}।</p>`;
+        } else {
+            timeInfo.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> স্বয়ংক্রিয় চেক-ইন এর সময় এখন বন্ধ আছে। প্রয়োজনে ম্যানুয়ালি এন্ট্রি করুন।</p>`;
+        }
+    }
+
+    function checkIn() {
+        const now = new Date();
+        const newEntry = { date: now.toISOString().split('T')[0], dutyType: 'general', inTime: now.toTimeString().split(' ')[0], outTime: null, startTimestamp: now.getTime() };
+        const entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        entries.push(newEntry);
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        updatePunchCardUI(); generateReport();
+    }
+
+    function checkOut() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const todaysEntry = entries.find(e => e.date === todayStr && e.outTime === null);
+        if (!todaysEntry) return;
+        todaysEntry.outTime = now.toTimeString().split(' ')[0];
+        const metrics = calculateDailyMetrics(todaysEntry);
+        Object.assign(todaysEntry, metrics, { isTiffinPaid: false, isNightBillPaid: false });
+        delete todaysEntry.startTimestamp;
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        updatePunchCardUI(); generateReport();
+    }
+
+    function startDutyTimer(startTimestamp) {
+        if (!startTimestamp) return;
+        dutyTimerInterval = setInterval(() => {
+            const elapsed = new Date().getTime() - startTimestamp;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('duty-timer').textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function openManualEntryModal() {
+        const modal = document.getElementById('manual-entry-modal');
+        modal.style.display = 'flex';
+        document.getElementById('manualDate').valueAsDate = new Date();
+        document.getElementById('manualInTime').value = '08:00';
+        document.getElementById('manualOutTime').value = '17:00';
+    }
+    function closeManualEntryModal() { document.getElementById('manual-entry-modal').style.display = 'none'; }
+
+    function addManualDuty() {
+        const entry = { date: document.getElementById('manualDate').value, inTime: document.getElementById('manualInTime').value, outTime: document.getElementById('manualOutTime').value };
+        if (!entry.date || !entry.inTime || !entry.outTime) { alert('অনুগ্রহ করে তারিখ, ইন-টাইম এবং আউট-টাইম পূরণ করুন।'); return; }
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        if (new Date(entry.date + 'T00:00:00Z') > today) { alert('ভবিষ্যতের কোনো তারিখের জন্য ডিউটি এন্ট্রি করা যাবে না।'); return; }
+        const metrics = calculateDailyMetrics(entry);
+        const finalEntry = { ...entry, ...metrics, dutyType: 'general', isTiffinPaid: false, isNightBillPaid: false };
+        updateDutyEntry(finalEntry);
+        closeManualEntryModal();
+        openTab(null, 'report');
+        setTimeout(() => {
+            const row = document.getElementById(`entry-${entry.date}`);
+            if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('flash-effect');
+                row.addEventListener('animationend', () => row.classList.remove('flash-effect'), { once: true });
+            }
+        }, 100);
+    }
+
+    function addLeaveEntry() {
+        const date = document.getElementById('manualDate').value;
+        if (!date) { alert('অনুগ্রহ করে তারিখ পূরণ করুন।'); return; }
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        if (new Date(date + 'T00:00:00Z') > today) { alert('ভবিষ্যতের কোনো তারিখের জন্য ছুটি এন্ট্রি করা যাবে না।'); return; }
+        const finalEntry = { date, dutyType: 'leave', inTime: null, outTime: null, otHours: 0, tiffinBill: 0, nightBill: 0, lateMinutes: 0 };
+        updateDutyEntry(finalEntry);
+        closeManualEntryModal();
+        openTab(null, 'report');
+        setTimeout(() => {
+            const row = document.getElementById(`entry-${date}`);
+            if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('flash-effect');
+                row.addEventListener('animationend', () => row.classList.remove('flash-effect'), { once: true });
+            }
+        }, 100);
+    }
+
+    function deleteDutyEntry() {
+        const dateToDelete = document.getElementById('manualDate').value;
+        if (!dateToDelete) { alert('অনুগ্রহ করে যে তারিখের এন্ট্রি মুছতে চান, সেই তারিখটি সিলেক্ট করুন।'); return; }
+        if (!confirm(`আপনি কি নিশ্চিত যে ${formatDate(dateToDelete + 'T00:00:00Z')} তারিখের এন্ট্রি মুছে ফেলতে চান? এই প্রক্রিয়াটি ফেরানো সম্ভব নয়।`)) return;
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const updatedEntries = entries.filter(entry => entry.date !== dateToDelete);
+        if (entries.length === updatedEntries.length) { alert('এই তারিখের জন্য কোনো এন্ট্রি পাওয়া যায়নি।'); return; }
+        localStorage.setItem('dutyEntries', JSON.stringify(updatedEntries));
+        alert('এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে।');
+        closeManualEntryModal();
+        generateReport();
+        openTab(null, 'report');
+        setTimeout(() => {
+            const row = document.getElementById(`entry-${dateToDelete}`);
+            if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('flash-effect');
+                row.addEventListener('animationend', () => row.classList.remove('flash-effect'), { once: true });
+            }
+        }, 100);
+    }
+
+    function updateDutyEntry(entry) {
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const index = entries.findIndex(e => e.date === entry.date);
+        if (index > -1) {
+            entries[index] = entry;
+        } else {
+            entries.push(entry);
+        }
+    
+        // মূল ডাটা লোকাল স্টোরেজে সেভ করা
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+    
+        // *** আমাদের নতুন কোড ***
+        // স্থায়ী ব্যাকআপ ফাইল আপডেট করার জন্য ফাংশন কল করা
+        saveAllDataToPermanentStorage();
+    
+        alert(`${formatDate(entry.date + 'T00:00:00Z')} তারিখের তথ্য আপডেট করা হয়েছে।`);
+        generateReport();
+    }
+
+    function openHolidayModal() {
+        document.getElementById('holiday-modal').style.display = 'flex';
+        renderCalendar();
+    }
+    function closeHolidayModal() {
+        document.getElementById('holiday-modal').style.display = 'none';
+        generateReport();
+    }
+
+    function renderCalendar() {
+        const reportMonth = document.getElementById('reportMonth').value;
+        const [year, month] = reportMonth.split('-').map(Number);
+        document.getElementById('modal-title').textContent = `${new Date(Date.UTC(year, month - 1)).toLocaleString('bn-BD', { month: 'long', year: 'numeric', timeZone: 'UTC' })} মাসের ছুটি`;
+        const calendarEl = document.getElementById('holiday-calendar');
+        calendarEl.innerHTML = '';
+        ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'].forEach(day => { calendarEl.innerHTML += `<div class="calendar-header">${day}</div>`; });
+        const firstDayOfMonth = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+        for (let i = 0; i < firstDayOfMonth; i++) calendarEl.appendChild(document.createElement('div'));
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(Date.UTC(year, month - 1, day));
+            const dateStr = date.toISOString().split('T')[0];
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+            dayEl.textContent = toBengali(day);
+            dayEl.dataset.date = dateStr;
+            const holidayStatus = getHolidayStatus(dateStr);
+            dayEl.classList.add(`day-${holidayStatus.type}`);
+            dayEl.addEventListener('click', (e) => showContextMenu(e, dateStr));
+            calendarEl.appendChild(dayEl);
+        }
+    }
+
+    function showContextMenu(event, dateStr) {
+        event.preventDefault();
+        const menu = document.getElementById('calendar-context-menu');
+        const holidayStatus = getHolidayStatus(dateStr);
+        document.getElementById('context-menu-date').textContent = new Date(dateStr + 'T00:00:00Z').toLocaleDateString('bn-BD', { dateStyle: 'full', timeZone: 'UTC' });
+        const isHoliday = ['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type);
+        document.getElementById('context-menu-holiday-options').style.display = isHoliday ? 'block' : 'none';
+        document.getElementById('context-menu-workday-options').style.display = !isHoliday ? 'block' : 'none';
+        menu.querySelectorAll('[data-date]').forEach(el => el.dataset.date = dateStr);
+        const rect = event.target.getBoundingClientRect();
+        const screenWidth = window.innerWidth, screenHeight = window.innerHeight;
+        menu.style.display = 'block';
+        const menuWidth = menu.offsetWidth, menuHeight = menu.offsetHeight;
+        let top = rect.bottom + 5, left = rect.left;
+        if (left + menuWidth > screenWidth) left = screenWidth - menuWidth - 5;
+        if (top + menuHeight > screenHeight) top = rect.top - menuHeight - 5;
+        menu.style.top = `${top}px`; menu.style.left = `${left}px`;
+    }
+
+    function setDayStatus(dateStr, status) {
+        const customHolidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+        if (status === null) {
+            delete customHolidays[dateStr];
+        } else {
+            let holidayData = { type: status, note: '' };
+            if (status === 'factory_holiday' || status === 'special_holiday') {
+                const reason = prompt(`"${status === 'factory_holiday' ? 'উৎসব' : 'বিশেষ'}" ছুটির কারণ বা নোট লিখুন:`);
+                if (reason !== null) {
+                    holidayData.note = reason.trim();
+                } else {
+                    return; // ব্যবহারকারী বাতিল করলে কিছুই হবে না
+                }
+            }
+            customHolidays[dateStr] = holidayData;
+        }
+        
+        // কাস্টম হলিডে লোকাল স্টোরেজে সেভ করা
+        localStorage.setItem('customHolidays', JSON.stringify(customHolidays));
+    
+        // ডিউটি এন্ট্রিতে কোনো পরিবর্তন প্রয়োজন হলে তা করা
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const entryIndex = entries.findIndex(e => e.date === dateStr && e.dutyType !== 'leave');
+        if (entryIndex > -1) {
+            const updatedMetrics = calculateDailyMetrics(entries[entryIndex]);
+            Object.assign(entries[entryIndex], updatedMetrics);
+            localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        }
+    
+        // *** আমাদের নতুন কোড ***
+        // সকল পরিবর্তনের পর স্থায়ী ব্যাকআপ ফাইল আপডেট করা
+        saveAllDataToPermanentStorage();
+    
+        renderCalendar();
+        generateReport();
+        document.getElementById('calendar-context-menu').style.display = 'none';
+    }
+
+    function resetCurrentMonthHolidays() {
+        if (!confirm('আপনি কি নিশ্চিত যে এই মাসের সকল কাস্টম পরিবর্তন মুছে ফেলতে চান? এর ফলে এই মাসের ডিউটিগুলোর ওভারটাইম পুনরায় গণনা করা হবে।')) return;
+        const reportMonth = document.getElementById('reportMonth').value;
+        const customHolidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+        Object.keys(customHolidays).forEach(date => { if (date.startsWith(reportMonth)) delete customHolidays[date]; });
+        localStorage.setItem('customHolidays', JSON.stringify(customHolidays));
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        entries.forEach(entry => {
+            if (entry.date.startsWith(reportMonth) && entry.dutyType !== 'leave') {
+                const newMetrics = calculateDailyMetrics(entry);
+                Object.assign(entry, newMetrics);
+            }
+        });
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        renderCalendar();
+        generateReport();
+        alert('এই মাসের কাস্টম ছুটি রিসেট করা হয়েছে এবং ডিউটি লগ আপডেট করা হয়েছে।');
+    }
+
+    function generateReport() {
+        const profile = JSON.parse(localStorage.getItem('employeeProfile'));
+        if (!profile) return;
+        const reportMonthValue = document.getElementById('reportMonth').value;
+        const [year, month] = reportMonthValue.split('-').map(Number);
+        const allEntries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        const monthEntries = allEntries.filter(e => e.date.startsWith(reportMonthValue));
+        const entriesMap = new Map(monthEntries.map(e => [e.date, e]));
+        let totalOT = 0, totalLate = 0, absentDays = 0, leaveDays = 0;
+        let unpaidTiffinCount = 0, unpaidTiffinTotal = 0;
+        let unpaidNightCount = 0, unpaidNightTotal = 0;
+        const extraDetailsEntries = [];
+        const today = new Date(), today_year = today.getFullYear(), today_month = today.getMonth() + 1, today_day = today.getDate();
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const holidaysWithReasons = [];
+        let totalHolidayDuty = 0;
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const holidayStatus = getHolidayStatus(dateStr);
+            if (holidayStatus.type !== 'workday' && holidayStatus.type !== 'workday_holiday') holidaysWithReasons.push({ date: dateStr, ...holidayStatus });
+            const entry = entriesMap.get(dateStr);
+            if (entry) {
+                totalOT += entry.otHours || 0;
+                totalLate += entry.lateMinutes || 0;
+                if (entry.dutyType === 'leave') leaveDays++;
+                if (entry.tiffinBill > 0 && !entry.isTiffinPaid) { unpaidTiffinCount++; unpaidTiffinTotal += entry.tiffinBill; }
+                if (entry.nightBill > 0 && !entry.isNightBillPaid) { unpaidNightCount++; unpaidNightTotal += entry.nightBill; }
+                if ((entry.lateMinutes || 0) > 0 || (entry.tiffinBill || 0) > 0 || (entry.nightBill || 0) > 0) extraDetailsEntries.push(entry);
+                if (['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type)) totalHolidayDuty++;
+            } else {
+                let isPastOrToday = (year < today_year) || (year === today_year && month < today_month) || (year === today_year && month === today_month && day <= today_day);
+                if (isPastOrToday && (holidayStatus.type === 'workday' || holidayStatus.type === 'workday_holiday')) absentDays++;
+            }
+        }
+        const breakdown = calculateSalaryBreakdown(profile.grossSalary);
+        const otRate = breakdown.basic > 0 ? (breakdown.basic / 208) * 2 : 0;
+        const totalOTPayment = totalOT * otRate;
+        let attendanceBonus = 0;
+        let bonusStatusHTML = '';
+        if (profile.grade === 'grade') {
+            if (absentDays === 0 && leaveDays <= BONUS_LEAVE_LIMIT && totalLate <= 10) { attendanceBonus = 800; bonusStatusHTML = `<span class="bonus-status bonus-eligible">(যোগ্য)</span>`; }
+            else bonusStatusHTML = `<span class="bonus-status bonus-ineligible">(অযোগ্য)</span>`;
+        }
+        const payableSalary = parseFloat(profile.grossSalary) + totalOTPayment + attendanceBonus;
+        let summaryCardHTML = `<div class="summary-card"><h4><i class="fas fa-receipt"></i>মাসিক সারাংশ (${new Date(Date.UTC(year, month - 1)).toLocaleString('bn-BD', { month: 'long', year: 'numeric', timeZone: 'UTC' })})</h4><div class="detail-item"><i class="fas fa-hourglass-end"></i><strong>মোট ওভারটাইম:</strong> ${toBengali(totalOT)} ঘণ্টা</div><div class="detail-item"><i class="fas fa-money-bill-alt"></i><strong>ওভারটাইম বিল:</strong> ${toBengali(totalOTPayment.toFixed(2))} টাকা</div><div class="detail-item"><i class="fas fa-user-times"></i><strong>মোট অনুপস্থিত:</strong> ${toBengali(absentDays)} দিন</div><div class="detail-item"><i class="fas fa-plane"></i><strong>মোট ছুটি:</strong> ${toBengali(leaveDays)} দিন</div>${profile.grade === 'grade' ? `<div class="detail-item"><i class="fas fa-award"></i><strong>হাজিরা বোনাস:</strong> ${toBengali(attendanceBonus)} টাকা ${bonusStatusHTML}</div>` : ''}<div class="detail-item"><i class="fas fa-hand-holding-usd"></i><strong>মাসিক প্রদেয় বেতন:</strong> ${toBengali(payableSalary.toFixed(2))} টাকা</div></div>`;
+        const holidayTypes = { friday: { label: 'শুক্রবার', colorClass: 'day-friday', count: 0, reasons: [] }, gov_holiday: { label: 'সরকারি ছুটি', colorClass: 'day-gov_holiday', count: 0, reasons: [] }, factory_holiday: { label: 'উৎসব ছুটি', colorClass: 'day-factory_holiday', count: 0, reasons: [] }, special_holiday: { label: 'বিশেষ ছুটি', colorClass: 'day-special_holiday', count: 0, reasons: [] } };
+        holidaysWithReasons.forEach(h => { if (holidayTypes[h.type]) { holidayTypes[h.type].count++; if (h.reason) holidayTypes[h.type].reasons.push({ date: h.date, reason: h.reason }); } });
+        let holidayCardHTML = `<div class="summary-card"><h4><i class="fas fa-calendar-check"></i>মাসিক ছুটির ক্যালেন্ডার</h4><ul class="holiday-list">`;
+        Object.values(holidayTypes).forEach(holiday => { if (holiday.count > 0) { holidayCardHTML += `<li><span class="color-box ${holiday.colorClass}"></span><strong>${holiday.label}:</strong> ${toBengali(holiday.count)} দিন</li>`; if (holiday.reasons.length > 0) holiday.reasons.forEach(r => { holidayCardHTML += `<li class="holiday-reason-item"><span>${formatDate(r.date + 'T00:00:00Z')} - ${r.reason}</span></li>`; }); } });
+        holidayCardHTML += `<li style="margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;"><i class="fas fa-briefcase" style="color: var(--primary-color); margin-right: 8px;"></i><strong>মোট হলিডে ডিউটি:</strong> ${toBengali(totalHolidayDuty)} দিন</li></ul></div>`;
+        let billCardHTML = '';
+        if (unpaidTiffinTotal > 0 || (profile.grade === 'grade' && monthEntries.some(e => e.nightBill > 0))) {
+            billCardHTML = `<div class="summary-card"><h4><i class="fas fa-hand-holding-usd"></i>সাপ্তাহিক/মাসিক প্রাপ্য বিল</h4>`;
+            if (unpaidTiffinTotal > 0) billCardHTML += `<div class="detail-item"><i class="fas fa-utensils"></i><strong>বকেয়া টিফিন বিল:</strong> ${toBengali(unpaidTiffinTotal)} টাকা (${toBengali(unpaidTiffinCount)} দিন)</div>`;
+            if (profile.grade === 'grade') {
+                if (unpaidNightTotal > 0) billCardHTML += `<div class="detail-item"><i class="fas fa-moon"></i><strong>বকেয়া নাইট বিল:</strong> ${toBengali(unpaidNightTotal)} টাকা (${toBengali(unpaidNightCount)} রাত)</div><button class="btn-warning" style="width:auto; padding: 5px 10px; font-size: 12px; margin-top: 10px;" onclick="markNightBillsAsPaid()"><i class="fas fa-check-double"></i>মাসের সব নাইট বিল পরিশোধ করুন</button>`;
+                else if (monthEntries.some(e => e.nightBill > 0)) billCardHTML += `<div class="detail-item"><i class="fas fa-check-circle" style="color:var(--success-color);"></i><strong>নাইট বিল:</strong> পরিশোধিত</div>`;
+            }
+            billCardHTML += `</div>`;
+        }
+        let mainTableHTML = `<h4 class="section-title"><i class="fas fa-history"></i>ডিউটি লগ</h4><table class="report-table"><thead><tr><th>তারিখ</th><th>ধরন</th><th>ইন</th><th>আউট</th><th>ওটি (ঘণ্টা)</th></tr></thead><tbody>`;
+        let hasRenderedRows = false;
+        for (let day = 1; day <= daysInMonth; day++) {
+            let showRow = (year < today_year) || (year === today_year && month < today_month) || (year === today_year && month === today_month && day <= today_day);
+            if (!showRow) break;
+            hasRenderedRows = true;
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const entry = entriesMap.get(dateStr);
+            const holidayStatus = getHolidayStatus(dateStr);
+            let rowClass = '', typeDisplay = '', inTimeStr = '-', outTimeStr = '-', otHoursStr = '-';
+            if (entry) {
+                inTimeStr = entry.inTime ? new Date('1970-01-01T' + entry.inTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true}) : '-';
+                outTimeStr = entry.outTime ? new Date('1970-01-01T' + entry.outTime).toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true}) : '-';
+                otHoursStr = toBengali(entry.otHours || 0);
+                const isHoliday = ['friday', 'gov_holiday', 'factory_holiday', 'special_holiday'].includes(holidayStatus.type);
+                if (entry.dutyType === 'leave') { typeDisplay = 'অনুমোদিত ছুটি'; rowClass = 'holiday-row'; }
+                else if (isHoliday) { typeDisplay = 'হলিডে ডিউটি'; rowClass = 'holiday-row'; }
+                else typeDisplay = 'সাধারণ';
+            } else {
+                switch (holidayStatus.type) {
+                    case 'workday': case 'workday_holiday': typeDisplay = 'অনুপস্থিত'; rowClass = 'absent-row'; break;
+                    case 'friday': typeDisplay = 'শুক্রবার'; rowClass = 'holiday-row'; break;
+                    case 'gov_holiday': typeDisplay = 'সরকারি ছুটি'; rowClass = 'holiday-row'; break;
+                    case 'factory_holiday': typeDisplay = 'উৎসব ছুটি'; rowClass = 'holiday-row'; break;
+                    case 'special_holiday': typeDisplay = 'বিশেষ ছুটি'; rowClass = 'holiday-row'; break;
+                }
+            }
+            mainTableHTML += `<tr class="${rowClass}" id="entry-${dateStr}"><td>${formatDate(dateStr + 'T00:00:00Z')}</td><td>${typeDisplay}</td><td>${inTimeStr}</td><td>${outTimeStr}</td><td>${otHoursStr}</td></tr>`;
+        }
+        if (!hasRenderedRows) mainTableHTML += `<tr><td colspan="5" style="text-align:center;">এই মাসের জন্য কোনো ডিউটি লগ নেই।</td></tr>`;
+        mainTableHTML += `</tbody></table>`;
+        let extraDetailsHTML = '';
+        if (extraDetailsEntries.length > 0) {
+            extraDetailsHTML = `<button class="btn-info" style="margin-top: 20px;" onclick="toggleExtraDetails(this)"><i class="fas fa-info-circle"></i>অতিরিক্ত বিল ও লেটের বিস্তারিত দেখুন</button><div id="extra-details-container" style="display:none;"><h4 class="section-title"><i class="fas fa-money-check-alt"></i>অতিরিক্ত বিল ও লেটের বিস্তারিত</h4>${unpaidTiffinTotal > 0 ? `<button class="btn-success" style="margin-bottom: 10px;" onclick="markTiffinBillsAsPaid()"><i class="fas fa-check"></i>নির্বাচিত টিফিন বিল পরিশোধ করুন</button>` : ''}<table class="report-table"><thead><tr><th>তারিখ</th><th>লেট</th><th>টিফিন বিল</th>${profile.grade ==='grade' ? '<th>নাইট বিল</th>' : ''}</tr></thead><tbody>${extraDetailsEntries.map(e => `<tr><td>${formatDate(e.date + 'T00:00:00Z')}</td><td>${formatLateTime(e.lateMinutes)}</td><td>${e.tiffinBill > 0 ? (e.isTiffinPaid ? '<span class="paid-status"><i class="fas fa-check-circle"></i>পরিশোধিত</span>' : `<div class="tiffin-cell"><input type="checkbox" class="tiffin-checkbox" data-date="${e.date}"><span>${toBengali(e.tiffinBill)} টাকা</span></div>`) : '-'}</td>${profile.grade === 'grade' ? `<td>${e.nightBill > 0 ? (e.isNightBillPaid ? '<span class="paid-status"><i class="fas fa-check-circle"></i>পরিশোধিত</span>' : `${toBengali(e.nightBill)} টাকা`) : '-'}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+        }
+        document.getElementById('monthlyReport').innerHTML = `${summaryCardHTML}${holidayCardHTML}${billCardHTML}${mainTableHTML}${extraDetailsHTML}`;
+    }
+
+    function toggleExtraDetails(button) {
+        const container = document.getElementById('extra-details-container');
+        if (container.style.display === 'none' || container.style.display === '') {
+            container.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-eye-slash"></i>বিস্তারিত লুকান';
+        } else {
+            container.style.display = 'none';
+            button.innerHTML = '<i class="fas fa-info-circle"></i>অতিরিক্ত বিল ও লেটের বিস্তারিত দেখুন';
+        }
+    }
+
+    function markTiffinBillsAsPaid() {
+        const checkboxes = document.querySelectorAll('.tiffin-checkbox:checked');
+        if (checkboxes.length === 0) { alert('অনুগ্রহ করে পরিশোধ করার জন্য অন্তত একটি টিফিন বিল সিলেক্ট করুন।'); return; }
+        if (!confirm(`আপনি কি নিশ্চিত যে এই ${toBengali(checkboxes.length)}টি বিল পরিশোধ করা হয়েছে?`)) return;
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        checkboxes.forEach(box => {
+            const entry = entries.find(e => e.date === box.dataset.date);
+            if (entry) entry.isTiffinPaid = true;
+        });
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        alert('টিফিন বিলগুলো সফলভাবে পরিশোধিত হিসেবে চিহ্নিত করা হয়েছে।');
+        generateReport();
+    }
+
+    function markNightBillsAsPaid() {
+        const reportMonth = document.getElementById('reportMonth').value;
+        if (!confirm(`আপনি কি নিশ্চিত যে ${new Date(reportMonth + '-01T00:00:00Z').toLocaleString('bn-BD', { month: 'long', timeZone: 'UTC' })} মাসের সকল নাইট বিল পরিশোধ করা হয়েছে?`)) return;
+        let entries = JSON.parse(localStorage.getItem('dutyEntries')) || [];
+        entries.forEach(entry => {
+            if (entry.date.startsWith(reportMonth) && entry.nightBill > 0) entry.isNightBillPaid = true;
+        });
+        localStorage.setItem('dutyEntries', JSON.stringify(entries));
+        alert('নাইট বিলগুলো সফলভাবে পরিশোধিত হিসেবে চিহ্নিত করা হয়েছে।');
+        generateReport();
+    }
+
+    async function exportData() {
+        // ধাপ ১: এক্সপোর্ট করার জন্য সকল ডাটা প্রস্তুত করা
+        const profileData = localStorage.getItem('employeeProfile');
+        if (!profileData) {
+            alert('এক্সপোর্ট করার মতো কোনো প্রোফাইল ডাটা পাওয়া যায়নি।');
+            return;
+        }
+        const dataToExport = {
+            appInfo: { appName: "Personal Duty Manager", appVersion: "2.7.7", exportDate: new Date().toISOString() },
+            employeeProfile: JSON.parse(profileData),
+            dutyEntries: JSON.parse(localStorage.getItem('dutyEntries') || '[]'),
+            customHolidays: JSON.parse(localStorage.getItem('customHolidays') || '{}')
+        };
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const fileName = `duty_manager_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        const directoryPath = 'DutyManager'; // মূল স্টোরেজে এই নামে ফোল্ডার হবে
+    
+        // ধাপ ২: দেখা হবে এটি মোবাইল অ্যাপ নাকি ব্রাউজার
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { Filesystem, Directory, Encoding } = window.Capacitor.Plugins;
+    
+                // ধাপ ৩: ফাইল লেখার অনুমতি আছে কিনা তা পরীক্ষা করা এবং না থাকলে অনুমতি চাওয়া
+                let permStatus = await Filesystem.checkPermissions();
+                if (permStatus.publicStorage !== 'granted') {
+                    permStatus = await Filesystem.requestPermissions();
+                }
+    
+                // ধাপ ৪: যদি অনুমতি দেওয়া হয়, তাহলে ফাইল সেভ করা
+                if (permStatus.publicStorage === 'granted') {
+                    // প্রথমে দেখি 'DutyManager' ফোল্ডারটি আছে কিনা, না থাকলে তৈরি করবে
+                    try {
+                        await Filesystem.mkdir({
+                            path: directoryPath,
+                            directory: Directory.ExternalStorage, // ExternalStorage মানে ফোনের মূল স্টোরেজ
+                            recursive: true // যদি ফোল্ডার আগে থেকেই থাকে, তাহলে এরর দেবে না
+                        });
+                    } catch (e) {
+                        console.warn('ফোল্ডার আগে থেকেই ছিল অথবা তৈরি করা যায়নি।', e);
+                    }
+    
+                    // এখন ফাইলটি ওই ফোল্ডারের ভেতরে সেভ করা হবে
+                    await Filesystem.writeFile({
+                        path: `${directoryPath}/${fileName}`,
+                        data: dataStr,
+                        directory: Directory.ExternalStorage,
+                        encoding: Encoding.UTF8,
+                        recursive: true
+                    });
+    
+                    alert(`ডাটা সফলভাবে এক্সপোর্ট হয়েছে!\n\nফাইলটি আপনার ফোনের মূল স্টোরেজে "${directoryPath}" ফোল্ডারের ভিতর "${fileName}" নামে সেভ করা হয়েছে।`);
+                } else {
+                    alert('ফাইল সেভ করার জন্য অনুমতি প্রয়োজন। অনুগ্রহ করে অ্যাপটিকে স্টোরেজ ব্যবহারের অনুমতি দিন।');
+                }
+            } catch (error) {
+                console.error('নেটিভ ফাইল লেখার সময় সমস্যা:', error);
+                alert('ফাইল সেভ করার সময় একটি অপ্রত্যাশিত সমস্যা হয়েছে।');
+            }
+        } else {
+            // এটি ব্রাউজারে চললে আগের মতোই কাজ করবে
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.download = fileName;
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('ডাটা সফলভাবে এক্সপোর্ট হয়েছে!');
+        }
+    }
+
+    function processImportedData(jsonData) {
+        try {
+            const data = JSON.parse(jsonData);
+            let profile, entries, holidays;
+    
+            // বিভিন্ন ভার্সনের ব্যাকআপ ফাইল চেনার জন্য লজিক
+            if (data.appInfo && (data.appInfo.appVersion === "1.0" || data.appInfo.appVersion === "2.7.7")) {
+                profile = data.employeeProfile;
+                entries = data.dutyEntries;
+                holidays = data.customHolidays;
+            } else if (data.employeeProfile && Array.isArray(data.dutyEntries)) { // পুরোনো ফরম্যাটের জন্য
+                profile = data.employeeProfile;
+                entries = data.dutyEntries;
+                holidays = data.customHolidays;
+            } else {
+                alert('ভুল ফরম্যাটের ফাইল। অনুগ্রহ করে সঠিক ব্যাকআপ ফাইল নির্বাচন করুন।');
+                return;
+            }
+    
+            // ধাপ ১: লোকাল স্টোরেজে ডাটা সেভ করা
+            localStorage.setItem('employeeProfile', JSON.stringify(profile || {}));
+            localStorage.setItem('dutyEntries', JSON.stringify(entries || []));
+            localStorage.setItem('customHolidays', JSON.stringify(holidays || {}));
+    
+            // ধাপ ২: মোবাইল অ্যাপে চললে, স্থায়ী ব্যাকআপ হিসেবেও সেভ করা
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                saveAllDataToPermanentStorage(); // আমরা এই নতুন ফাংশনটি একটু পরেই তৈরি করব
+            }
+    
+            alert('ডাটা সফলভাবে ইমপোর্ট হয়েছে! অ্যাপটি এখন রিস্টার্ট হবে।');
+            window.location.reload();
+    
+        } catch (error) {
+            console.error("ইম্পোর্ট করার সময় এরর:", error);
+            alert('ফাইলটি পড়তে সমস্যা হয়েছে। এটি সম্ভবত একটি সঠিক ব্যাকআপ ফাইল নয়।');
+        }
+    }
+
+    async function importData() {
+        if (!confirm("ডাটা ইমপোর্ট করলে বর্তমান সকল তথ্য মুছে যাবে। আপনি কি নিশ্চিত?")) return;
+    
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { Filesystem, Directory, Encoding } = window.Capacitor.Plugins;
+                const directoryPath = 'DutyManager';
+                
+                // ধাপ ১: DutyManager ফোল্ডারে থাকা সব ফাইলের তালিকা নেওয়া
+                const result = await Filesystem.readdir({
+                    path: directoryPath,
+                    directory: Directory.ExternalStorage
+                });
+    
+                // ধাপ ২: শুধুমাত্র .json ব্যাকআপ ফাইলগুলো খুঁজে বের করা
+                const backupFiles = result.files.filter(file => file.name.startsWith('duty_manager_backup_') && file.name.endsWith('.json')).map(file => file.name);
+    
+                if (backupFiles.length > 0) {
+                    // সর্বশেষ ব্যাকআপ ফাইলটি বেছে নেওয়া (তারিখ অনুযায়ী)
+                    backupFiles.sort().reverse();
+                    const latestBackup = backupFiles[0];
+                    
+                    // সর্বশেষ ব্যাকআপ ফাইলটি পড়া
+                    const fileContent = await Filesystem.readFile({
+                        path: `${directoryPath}/${latestBackup}`,
+                        directory: Directory.ExternalStorage,
+                        encoding: Encoding.UTF8
+                    });
+                    
+                    processImportedData(fileContent.data);
+    
+                } else {
+                    // যদি কোনো ব্যাকআপ ফাইল খুঁজে না পাওয়া যায়
+                    alert('DutyManager ফোল্ডারে কোনো ব্যাকআপ ফাইল পাওয়া যায়নি।');
+                }
+    
+            } catch (error) {
+                console.error('নেটিভ ফাইল পড়ার সময় সমস্যা:', error);
+                alert('ডাটা ইমপোর্ট করার সময় একটি সমস্যা হয়েছে। ফোল্ডারটি আছে কিনা নিশ্চিত করুন।');
+            }
+        } else {
+            // ব্রাউজারের জন্য পুরোনো পদ্ধতিটিই থাকবে
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = res => processImportedData(res.target.result);
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    }
+
+    function hardReset() {
+        if (confirm("সতর্কবার্তা! আপনি কি নিশ্চিত যে আপনি সকল ডাটা মুছে ফেলতে চান? এর ফলে অ্যাপের ভেতরের এবং ফোনের স্টোরেজে থাকা স্থায়ী ব্যাকআপ উভয়ই স্থায়ীভাবে মুছে যাবে।")) {
+            // প্রথমে লোকাল স্টোরেজ মুছে ফেলা
+            localStorage.clear();
+            
+            // যদি মোবাইল অ্যাপে চলে, তাহলে স্থায়ী ব্যাকআপ ফাইলটিও মুছে ফেলা হবে
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                const { Filesystem, Directory } = window.Capacitor.Plugins;
+                
+                // আমরা এখানে PERMANENT_STORAGE_DIR এবং PERMANENT_STORAGE_FILE ভ্যারিয়েবল ব্যবহার করব, যা আমরা পরে যোগ করব
+                Filesystem.deleteFile({
+                    path: `${PERMANENT_STORAGE_DIR}/${PERMANENT_STORAGE_FILE}`,
+                    directory: Directory.ExternalStorage
+                }).then(() => {
+                    alert("সিস্টেম এবং স্থায়ী ব্যাকআপ সফলভাবে রিসেট করা হয়েছে।");
+                    window.location.reload();
+                }).catch(err => {
+                    // যদি ফাইল আগে থেকেই না থাকে, তাহলেও কোনো সমস্যা নেই
+                    console.error("স্থায়ী ব্যাকআপ মুছতে সমস্যা (সম্ভবত ফাইলটি আগে থেকেই ছিল না):", err);
+                    alert("সিস্টেম সফলভাবে রিসেট করা হয়েছে।");
+                    window.location.reload();
+                });
+            } else {
+                // ব্রাউজারে চললে শুধু লোকাল স্টোরেজই মোছা হবে
+                alert("সিস্টেম সফলভাবে রিসেট করা হয়েছে।");
+                window.location.reload();
+            }
+        }
+    }
+
+    window.addEventListener('click', (event) => {
+        const contextMenu = document.getElementById('calendar-context-menu');
+        if (contextMenu && !contextMenu.contains(event.target) && !event.target.closest('.calendar-day')) {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    const PERMANENT_STORAGE_FILE = 'internal_data_backup.json';
+    const PERMANENT_STORAGE_DIR = 'DutyManager';
+
+// এই ফাংশনটি সকল ডাটা নিয়ে একটি অবজেক্ট তৈরি করে
+    function getAllDataAsObject() {
+        const profile = JSON.parse(localStorage.getItem('employeeProfile') || 'null');
+        const entries = JSON.parse(localStorage.getItem('dutyEntries') || '[]');
+        const holidays = JSON.parse(localStorage.getItem('customHolidays') || '{}');
+        return {
+            appInfo: { appName: "Personal Duty Manager", appVersion: "2.7.7", exportDate: new Date().toISOString() },
+            employeeProfile: profile,
+            dutyEntries: entries,
+            customHolidays: holidays
+        };
+    }
+
+// এই ফাংশনটি সকল ডাটা DutyManager ফোল্ডারে সেভ করে
+    async function saveAllDataToPermanentStorage() {
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { Filesystem, Directory, Encoding } = window.Capacitor.Plugins;
+                const dataToSave = JSON.stringify(getAllDataAsObject(), null, 2);
+    
+                await Filesystem.writeFile({
+                    path: `${PERMANENT_STORAGE_DIR}/${PERMANENT_STORAGE_FILE}`,
+                    data: dataToSave,
+                    directory: Directory.ExternalStorage,
+                    encoding: Encoding.UTF8,
+                    recursive: true // যদি ফোল্ডার না থাকে, তবে তৈরি করবে
+                });
+                console.log('স্থায়ী ব্যাকআপ সফলভাবে আপডেট হয়েছে।');
+            } catch (error) {
+                console.error('স্থায়ী ব্যাকআপ সেভ করার সময় সমস্যা:', error);
+            }
+        }
+    }
+
+// এই ফাংশনটি DutyManager ফোল্ডার থেকে ডাটা লোড করে localStorage-এ ফিরিয়ে আনে
+    async function loadAllDataFromPermanentStorage() {
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { Filesystem, Directory, Encoding } = window.Capacitor.Plugins;
+                const fileContent = await Filesystem.readFile({
+                    path: `${PERMANENT_STORAGE_DIR}/${PERMANENT_STORAGE_FILE}`,
+                    directory: Directory.ExternalStorage,
+                    encoding: Encoding.UTF8
+                });
+                
+                const data = JSON.parse(fileContent.data);
+                if (data.employeeProfile) {
+                    localStorage.setItem('employeeProfile', JSON.stringify(data.employeeProfile));
+                    localStorage.setItem('dutyEntries', JSON.stringify(data.dutyEntries || []));
+                    localStorage.setItem('customHolidays', JSON.stringify(data.customHolidays || {}));
+                    console.log('স্থায়ী ব্যাকআপ থেকে ডাটা সফলভাবে রিস্টোর করা হয়েছে।');
+                    return true; // সফলভাবে লোড হয়েছে
+                }
+            } catch (error) {
+                console.log('কোনো স্থায়ী ব্যাকআপ পাওয়া যায়নি। স্বাভাবিকভাবে অ্যাপ চালু হচ্ছে।');
+            }
+        }
+        return false; // কোনো ডাটা লোড হয়নি
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Capacitor প্রস্তুত হওয়ার জন্য অপেক্ষা করা
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            // স্প্ল্যাশ স্ক্রিন লুকানোর জন্য, যদি ব্যবহার করা হয়
+            try {
+                await window.Capacitor.Plugins.SplashScreen.hide();
+            } catch (e) {
+                console.log("SplashScreen প্লাগইন পাওয়া যায়নি, উপেক্ষা করা হচ্ছে।");
+            }
+        }
+    
+        initializeFirebase();
+        const profileFormHTML = getProfileFormHTML();
+        document.getElementById('setup-form-container').innerHTML = profileFormHTML;
+        document.getElementById('edit-form-container').innerHTML = profileFormHTML;
+        const today = new Date();
+        document.getElementById('reportMonth').value = today.toISOString().substring(0, 7);
+    
+        let profile = localStorage.getItem('employeeProfile');
+    
+        // যদি লোকাল স্টোরেজে প্রোফাইল না থাকে, তাহলে স্থায়ী ব্যাকআপ থেকে লোড করার চেষ্টা করা
+        if (!profile) {
+            const loaded = await loadAllDataFromPermanentStorage();
+            if (loaded) {
+                profile = localStorage.getItem('employeeProfile');
+            }
+        }
+    
+        if (profile) {
+            document.getElementById('setup-screen').style.display = 'none';
+            document.querySelector('.main-wrapper').style.display = 'block';
+            const lastTab = localStorage.getItem('lastActiveTab');
+            openTab(null, lastTab || 'profile');
+            loadProfile();
+            generateReport();
+        }
+    
+        const accordions = document.querySelectorAll('.accordion-header');
+        accordions.forEach(accordion => {
+            accordion.addEventListener('click', () => {
+                const content = accordion.nextElementSibling;
+                accordion.classList.toggle('active');
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    content.style.padding = "0 15px";
+                } else {
+                    content.style.padding = "15px";
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        });
+    });
+
+</script>
+
+</body>
+</html>

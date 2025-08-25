@@ -11,16 +11,20 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4  # v3 থেকে v4 এ আপডেট করা হয়েছে
+      uses: actions/checkout@v4
 
     - name: Setup Java and Node.js
-      uses: actions/setup-java@v4  # v3 থেকে v4 এ আপডেট করা হয়েছে
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '11'
-    - uses: actions/setup-node@v4  # v3 থেকে v4 এ আপডেট করা হয়েছে
+    - uses: actions/setup-node@v4
       with:
         node-version: '16'
+
+    # --- নতুন ধাপ: স্বয়ংক্রিয়ভাবে অ্যান্ড্রয়েড লাইসেন্স গ্রহণ ---
+    - name: Accept Android SDK Licenses
+      run: yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses || true
 
     - name: Install Cordova
       run: npm install -g cordova
@@ -34,8 +38,7 @@ jobs:
         cordova build android
 
     - name: Upload APK as Artifact
-      uses: actions/upload-artifact@v4  # সবচেয়ে গুরুত্বপূর্ণ পরিবর্তন: v3 থেকে v4
+      uses: actions/upload-artifact@v4
       with:
         name: DutyManager-APK
         path: build_folder/platforms/android/app/build/outputs/apk/debug/app-debug.apk
-        

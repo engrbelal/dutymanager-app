@@ -1,4 +1,4 @@
-name: Build DutyManager APK
+name: Build DutyManager APK with Docker
 
 on:
   push:
@@ -9,39 +9,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # --- নতুন ধাপ: Gradle-এর জন্য মেমোরি অপটিমাইজেশন ---
-    env:
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1024m"
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Java and Node.js
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '16'
-
-    - name: Accept Android SDK Licenses
-      run: yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses > /dev/null || true
-
-    - name: Install Cordova
-      run: npm install -g cordova
-
-    - name: Create Cordova Project and Build
+    - name: Build APK using Docker
       run: |
-        cordova create build_folder com.belal.dutymanager DutyManager
-        cd build_folder
-        cp ../config.xml ../index.html ../icon.png ../splash.png www/
-        cordova platform add android@12
-        cordova build android
-
+        docker run --rm -v "$(pwd)":/app -w /app cordova/cordova-android:12.0.0 /bin/bash -c "
+          cordova create build_folder com.belal.dutymanager DutyManager &&
+          cd build_folder &&
+          cp ../config.xml ../index.html ../icon.png ../splash.png www/ &&
+          cordova platform add android@12 &&
+          cordova build android --release
+        "
+      
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:
         name: DutyManager-APK
-        path: build_folder/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+        

@@ -32,4 +32,5 @@ jobs:
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DutyManager-
+        name: DutyManager-APK
+        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk

@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # --- নতুন ধাপ: Gradle-এর জন্য মেমোরি অপটিমাইজেশন ---
+    env:
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1024m"
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -22,9 +26,8 @@ jobs:
       with:
         node-version: '16'
 
-    # --- নতুন ধাপ: স্বয়ংক্রিয়ভাবে অ্যান্ড্রয়েড লাইসেন্স গ্রহণ ---
     - name: Accept Android SDK Licenses
-      run: yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses || true
+      run: yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses > /dev/null || true
 
     - name: Install Cordova
       run: npm install -g cordova

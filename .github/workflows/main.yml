@@ -24,7 +24,7 @@ jobs:
           cd build_folder &&
           cp ../config.xml ../index.html ../icon.png ../splash.png www/ &&
           cordova platform add android &&
-          cordova build android --release
+          cordova build android --release -- --apk
         "
       
     - name: Upload APK as Artifact

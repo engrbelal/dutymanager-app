@@ -1,4 +1,4 @@
-name: Build DutyManager AAB with Correct File Placement
+name: Build DutyManager APK (The Simple Way)
 
 on:
   push:
@@ -10,42 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # ধাপ ১: আপনার রিপোজিটরির সমস্ত ফাইল চেকআউট করা
-    - name: Checkout repository
+    # ধাপ ১: আপনার রিপোজিটরির ফাইলগুলো আনা
+    - name: Checkout Your Code
       uses: actions/checkout@v4
 
-    # ধাপ ২: ডকার এনভায়রনমেন্ট সেটআপ করা
-    - name: Set up Docker
-      uses: docker/setup-qemu-action@v3
-    - uses: docker/setup-buildx-action@v3
+    # ধাপ ২: APK তৈরি করার জন্য জাদুকরী অ্যাকশন
+    - name: Build APK using a dedicated Cordova Action
+      # এই অ্যাকশনটি বিশেষভাবে Cordova অ্যাপ বিল্ড করার জন্য তৈরি
+      uses: cordova-ci/cordova-action@v2
+      with:
+        # আমরা এখানে বলে দিচ্ছি যে অ্যান্ড্রয়েড প্ল্যাটফর্মের জন্য বিল্ড করতে হবে
+        platform: android
+        # এবং আমরা একটি APK চাই
+        build: apk
 
-    # ধাপ ৩: আপনার ফাইল ব্যবহার করে AAB তৈরি করা (সঠিক এবং পরীক্ষিত কপি কমান্ড সহ)
-    - name: Build Android App Bundle (AAB) using Docker
-      run: |
-        docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
-          # ১. একটি নতুন Cordova প্রজেক্ট 'build_folder' নামে তৈরি করা
-          cordova create build_folder com.belal.dutymanager DutyManager &&
-          
-          # ২. নতুন প্রজেক্টের ভেতরে প্রবেশ করা
-          cd build_folder &&
-          
-          # ৩. আপনার ফাইলগুলোকে তাদের সঠিক এবং নির্দিষ্ট জায়গায় কপি করা (সংশোধিত)
-          cp ../config.xml . &&
-          cp ../icon.png . &&
-          cp ../splash.png . &&
-          # www/index.html ফাইলটিকে সরাসরি আপনার index.html দিয়ে রিপ্লেস করা হচ্ছে
-          cp ../index.html www/index.html &&
-          
-          # ৪. অ্যান্ড্রয়েড প্ল্যাটফর্ম যোগ করা
-          cordova platform add android &&
-          
-          # ৫. আপনার দেওয়া সফল AAB বিল্ড কমান্ডটি চালানো
-          cordova build android --release -- --bundle
-        "
-      
-    # ধাপ ৪: সঠিক লোকেশন থেকে AAB ফাইলটি আপলোড করা
-    - name: Upload AAB as Artifact
+    # ধাপ ৩: তৈরি হওয়া APK ফাইলটি আপলোড করা
+    - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DutyManager-AAB
-        path: build_folder/platforms/android/app/build/outputs/bundle/release/app-release.aab
+        name: DutyManager-APK
+        # এই অ্যাকশনটি স্বয়ংক্রিয়ভাবে সঠিক ফোল্ডারে APK তৈরি করে
+        path: platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk

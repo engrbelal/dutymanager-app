@@ -17,21 +17,16 @@ jobs:
       uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
 
-    - name: Build Android APK using Docker and Gradle
+    - name: Build Android APK using Docker and build.json
       run: |
         docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
-          # ধাপ ১: কর্ডোভা প্রজেক্ট তৈরি করা (এটি ঠিকমতো কাজ করছে)
           cordova create build_folder com.belal.dutymanager DutyManager &&
           cd build_folder &&
-          cp ../config.xml ../index.html ../icon.png ../splash.png www/ &&
+          cp ../config.xml ../index.html ../icon.png ../splash.png ../build.json www/ &&
           cordova platform add android &&
-          
-          # ধাপ ২: সরাসরি Gradle ব্যবহার করে APK তৈরি করা (চূড়ান্ত সমাধান)
-          cd platforms/android &&
-          chmod +x gradlew &&
-          ./gradlew assembleRelease
+          cordova build android --release -- --buildConfig=www/build.json
         "
-      
+          
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:

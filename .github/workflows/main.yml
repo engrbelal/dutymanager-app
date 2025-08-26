@@ -1,34 +1,23 @@
-name: Build DutyManager App Bundle
+name: Build Signed Release APK  # <-- এটি হলো পুরো Workflow-এর নাম
 
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
+jobs:                          # <-- এখানে কাজের তালিকা শুরু
+  build:                       # <-- এটি হলো আমাদের মূল কাজের (Job) নাম
+    runs-on: ubuntu-latest     # <-- এই কাজটি কোন কম্পিউটারে চলবে
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
+    steps:                     # <-- এখানে কাজের ধাপগুলো (Steps) শুরু
+    - name: Checkout repository # <-- ধাপ ১ এর নাম
       uses: actions/checkout@v4
 
-    - name: Set up Docker
-      uses: docker/setup-qemu-action@v3
-    - uses: docker/setup-buildx-action@v3
+    - name: Set up JDK 11      # <-- ধাপ ২ এর নাম
+      uses: actions/setup-java@v4
+      # ...
 
-    - name: Build Android App Bundle (AAB) using Docker
+    - name: Build and Sign APK # <-- ধাপ ৩ এর নাম (আপনার জিজ্ঞাসিত নামটি)
+      env:
+        # ...
       run: |
-        docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
-          cordova create build_folder com.belal.dutymanager DutyManager &&
-          cd build_folder &&
-          cp ../config.xml ../index.html ../icon.png ../splash.png www/ &&
-          cordova platform add android &&
-          cordova build android --release -- --bundle
-        "
-      
-    - name: Upload AAB as Artifact
+        # ... (এখানে মূল কমান্ডগুলো চলে)
+
+    - name: Upload Signed APK as Artifact # <-- ধাপ ৪ এর নাম
       uses: actions/upload-artifact@v4
-      with:
-        name: DutyManager-AAB
-        path: build_folder/platforms/android/app/build/outputs/bundle/release/app-release.aab
+      # ...

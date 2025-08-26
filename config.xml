@@ -46,7 +46,7 @@
         <icon density="xhdpi" src="res/icon/android/xhdpi.png" />
         <icon density="xxhdpi" src="res/icon/android/xxhdpi.png" />
         <icon density="xxxhdpi" src="res/icon/android/xxxhdpi.png" />
-    </plarform>
+    </platform> <!-- <--- এখানে বানানটি ঠিক করা হয়েছে -->
 
     <!-- Capacitor/Cordova প্লাগইনগুলোর জন্য কনফিগারেশন -->
     <preference name="ScrollEnabled" value="false" />

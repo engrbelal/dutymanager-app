@@ -22,7 +22,13 @@ jobs:
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
-        gradle-version: '8.4' # <-- আমরা এখানে Gradle-এর একটি স্থিতিশীল ভার্সন নির্দিষ্ট করে দিচ্ছি
+        gradle-version: '8.4'
+
+    - name: Install Android SDK and Build Tools
+      run: |
+        # ANDROID_HOME is already set by the runner environment
+        # We just need to install the specific packages using sdkmanager
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
     - name: Build and Sign APK
       env:
@@ -30,7 +36,7 @@ jobs:
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
-        # Install Cordova and necessary tools
+        # Install Cordova
         npm install -g cordova
 
         # Create Cordova project
@@ -43,22 +49,13 @@ jobs:
         # Add Android platform
         cordova platform add android@12
 
-        # Generate Keystore using the secrets
+        # Generate Keystore
         keytool -genkey -v -keystore release-key.keystore -alias $KEY_ALIAS -keyalg RSA -keysize 2048 -validity 10000 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD -dname "CN=Md Belal Hossain, OU=Development, O=Belal Apps, L=Dhaka, S=Dhaka, C=BD" -noprompt
 
-        # Create build.json for signing configuration
-        echo '{' > build.json
-        echo '  "android": {' >> build.json
-        echo '    "release": {' >> build.json
-        echo '      "keystore": "release-key.keystore",' >> build.json
-        echo '      "storePassword": "'$KEYSTORE_PASSWORD'",' >> build.json
-        echo '      "alias": "'$KEY_ALIAS'",' >> build.json
-        echo '      "password": "'$KEY_PASSWORD'"' >> build.json
-        echo '    }' >> build.json
-        echo '  }' >> build.json
-        echo '}' >> build.json
+        # Create build.json for signing
+        echo '{ "android": { "release": { "keystore": "release-key.keystore", "storePassword": "'$KEYSTORE_PASSWORD'", "alias": "'$KEY_ALIAS'", "password": "'$KEY_PASSWORD'" } } }' > build.json
 
-        # Build the signed release APK using the build.json config
+        # Build the signed release APK
         cordova build android --release -- --buildConfig=build.json
 
     - name: Upload Signed APK as Artifact

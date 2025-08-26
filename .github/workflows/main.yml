@@ -1,23 +1,64 @@
-name: Build Signed Release APK  # <-- এটি হলো পুরো Workflow-এর নাম
+name: Build Signed Release APK
 
-jobs:                          # <-- এখানে কাজের তালিকা শুরু
-  build:                       # <-- এটি হলো আমাদের মূল কাজের (Job) নাম
-    runs-on: ubuntu-latest     # <-- এই কাজটি কোন কম্পিউটারে চলবে
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-    steps:                     # <-- এখানে কাজের ধাপগুলো (Steps) শুরু
-    - name: Checkout repository # <-- ধাপ ১ এর নাম
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK 11      # <-- ধাপ ২ এর নাম
+    - name: Set up JDK 11
       uses: actions/setup-java@v4
-      # ...
+      with:
+        distribution: 'temurin'
+        java-version: '11'
 
-    - name: Build and Sign APK # <-- ধাপ ৩ এর নাম (আপনার জিজ্ঞাসিত নামটি)
+    - name: Build and Sign APK
       env:
-        # ...
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
-        # ... (এখানে মূল কমান্ডগুলো চলে)
+        # Install Cordova and necessary tools
+        npm install -g cordova
 
-    - name: Upload Signed APK as Artifact # <-- ধাপ ৪ এর নাম
+        # Create Cordova project
+        cordova create build_folder com.belal.dutymanager DutyManager
+        cd build_folder
+
+        # Copy your app files
+        cp ../config.xml ../index.html ../icon.png ../splash.png www/
+
+        # Add Android platform
+        cordova platform add android@12
+
+        # Generate Keystore using the secrets
+        keytool -genkey -v -keystore release-key.keystore -alias $KEY_ALIAS -keyalg RSA -keysize 2048 -validity 10000 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD -dname "CN=Md Belal Hossain, OU=Development, O=Belal Apps, L=Dhaka, S=Dhaka, C=BD" -noprompt
+
+        # Create build.json for signing configuration
+        echo '{' > build.json
+        echo '  "android": {' >> build.json
+        echo '    "release": {' >> build.json
+        echo '      "keystore": "release-key.keystore",' >> build.json
+        echo '      "storePassword": "'$KEYSTORE_PASSWORD'",' >> build.json
+        echo '      "alias": "'$KEY_ALIAS'",' >> build.json
+        echo '      "password": "'$KEY_PASSWORD'"' >> build.json
+        echo '    }' >> build.json
+        echo '  }' >> build.json
+        echo '}' >> build.json
+
+        # Build the signed release APK using the build.json config
+        cordova build android --release -- --buildConfig=build.json
+
+    - name: Upload Signed APK as Artifact
       uses: actions/upload-artifact@v4
-      # ...
+      with:
+        name: DutyManager-Signed-Release-APK
+        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release.apk
+        if-no-files-found: error

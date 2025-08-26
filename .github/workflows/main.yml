@@ -1,4 +1,4 @@
-name: Build DutyManager App APK
+name: Build DutyManager APK From Source Files
 
 on:
   push:
@@ -10,25 +10,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # ধাপ ১: আপনার ফাইলগুলো চেকআউট করা
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # ধাপ ২: ডকার এনভায়রনমেন্ট সেটআপ করা
     - name: Set up Docker
       uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
 
-    - name: Build Android APK using Docker and build.json
+    # ধাপ ৩: আপনার ফাইল ব্যবহার করে প্রজেক্ট তৈরি ও বিল্ড করা
+    - name: Create, Configure, and Build Android APK
       run: |
         docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
-          cordova create build_folder com.belal.dutymanager DutyManager &&
-          cd build_folder &&
-          cp ../config.xml ../index.html ../icon.png ../splash.png ../build.json www/ &&
-          cordova platform add android &&
-          cordova build android --release -- --buildConfig=www/build.json
-        "
+          # ১. একটি নতুন Cordova প্রজেক্ট 'build_dir' নামে তৈরি করা
+          cordova create build_dir com.belal.dutymanager DutyManager &&
           
+          # ২. নতুন প্রজেক্টের ভেতরে প্রবেশ করা
+          cd build_dir &&
+          
+          # ৩. আপনার ফাইলগুলোকে সঠিক জায়গায় কপি করা
+          # config.xml প্রজেক্টের রুটে কপি হবে
+          cp ../config.xml . &&
+          
+          # index.html ডিফল্ট ফাইলকে রিপ্লেস করবে
+          cp ../index.html www/index.html &&
+          
+          # icon.png এবং splash.png প্রজেক্টের রুটে কপি হবে (config.xml এগুলোকে খুঁজে নেবে)
+          cp ../icon.png . &&
+          cp ../splash.png . &&
+          
+          # ৪. অ্যান্ড্রয়েড প্ল্যাটফর্ম যোগ করা
+          cordova platform add android &&
+          
+          # ৫. সরাসরি Gradle দিয়ে APK তৈরি করা (সবচেয়ে নির্ভরযোগ্য)
+          cd platforms/android &&
+          chmod +x gradlew &&
+          ./gradlew assembleRelease
+        "
+      
+    # ধাপ ৪: সঠিক লোকেশন থেকে APK আপলোড করা
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DutyManager-APK
-        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release.apk
+        name: DutyManager-v2.7.7-APK
+        path: build_dir/platforms/android/app/build/outputs/apk/release/app-release.apk

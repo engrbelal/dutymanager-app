@@ -1,4 +1,4 @@
-name: Build DutyManager App Bundle with Custom Files
+name: Build DutyManager App Bundle with All Custom Files
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
 
-    # ধাপ ৩: আপনার ফাইল ব্যবহার করে AAB তৈরি করা (আপনার কোডের উন্নত সংস্করণ)
+    # ধাপ ৩: আপনার ফাইল ব্যবহার করে AAB তৈরি করা
     - name: Build Android App Bundle (AAB) using Docker
       run: |
         docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
@@ -29,8 +29,7 @@ jobs:
           # ২. নতুন প্রজেক্টের ভেতরে প্রবেশ করা (আপনার কোড অনুযায়ী)
           cd build_folder &&
           
-          # ৩. আপনার রিপোজিটরির ফাইলগুলোকে নতুন প্রজেক্টের সঠিক জায়গায় কপি করা
-          #    (এটিই একমাত্র প্রয়োজনীয় পরিবর্তন)
+          # ৩. আপনার ফাইলগুলোকে নতুন প্রজেক্টের সঠিক জায়গায় কপি করা (আপনার শর্ত পূরণের জন্য)
           cp ../config.xml . &&
           cp ../index.html www/index.html &&
           cp ../icon.png . &&

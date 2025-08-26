@@ -21,8 +21,6 @@ jobs:
 
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: '8.4'
 
     - name: Install Android SDK and Build Tools
       run: |
@@ -42,11 +40,11 @@ jobs:
         keytool -genkey -v -keystore release-key.keystore -alias $KEY_ALIAS -keyalg RSA -keysize 2048 -validity 10000 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD -dname "CN=Md Belal Hossain, OU=Development, O=Belal Apps, L=Dhaka, S=Dhaka, C=BD" -noprompt
         echo '{ "android": { "release": { "keystore": "release-key.keystore", "storePassword": "'$KEYSTORE_PASSWORD'", "alias": "'$KEY_ALIAS'", "password": "'$KEY_PASSWORD'" } } }' > build.json
         
-        # আমরা এখন --apk কমান্ড যোগ করছি এবং --bundle বাদ দিচ্ছি
-        cordova build android --release -- --buildConfig=build.json --apk
+        # এই কমান্ডটি সরাসরি সাইন্ড APK তৈরি করবে
+        cordova build android --release -- --buildConfig=build.json
 
-    - name: Upload Signed APK as Artifact
+    - name: Find and Upload Signed APK
       uses: actions/upload-artifact@v4
       with:
         name: DutyManager-Signed-APK
-        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-signed.apk
+        path: '**/app-release.apk'

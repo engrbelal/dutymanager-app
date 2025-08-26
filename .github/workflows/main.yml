@@ -1,4 +1,4 @@
-name: Build DutyManager App Bundle with All Custom Files
+name: Build DutyManager AAB with Stable Environment
 
 on:
   push:
@@ -14,37 +14,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # ধাপ ২: ডকার এনভায়রনমেন্ট সেটআপ করা (আপনার কোড অনুযায়ী)
-    - name: Set up Docker
-      uses: docker/setup-qemu-action@v3
-    - uses: docker/setup-buildx-action@v3
-
-    # ধাপ ৩: আপনার ফাইল ব্যবহার করে AAB তৈরি করা
-    - name: Build Android App Bundle (AAB) using Docker
-      run: |
-        docker run --rm -v "$(pwd)":/app -w /app beevelop/cordova:latest bash -c "
-          # ১. একটি নতুন Cordova প্রজেক্ট 'build_folder' নামে তৈরি করা (আপনার কোড অনুযায়ী)
-          cordova create build_folder com.belal.dutymanager DutyManager &&
-          
-          # ২. নতুন প্রজেক্টের ভেতরে প্রবেশ করা (আপনার কোড অনুযায়ী)
-          cd build_folder &&
-          
-          # ৩. আপনার ফাইলগুলোকে নতুন প্রজেক্টের সঠিক জায়গায় কপি করা (আপনার শর্ত পূরণের জন্য)
-          cp ../config.xml . &&
-          cp ../index.html www/index.html &&
-          cp ../icon.png . &&
-          cp ../splash.png . &&
-          
-          # ৪. অ্যান্ড্রয়েড প্ল্যাটফর্ম যোগ করা (আপনার কোড অনুযায়ী)
-          cordova platform add android &&
-          
-          # ৫. আপনার দেওয়া সফল AAB বিল্ড কমান্ডটি চালানো (আপনার কোড অনুযায়ী)
-          cordova build android --release -- --bundle
-        "
-      
-    # ধাপ ৪: সঠিক লোকেশন থেকে AAB ফাইলটি আপলোড করা (আপনার কোড অনুযায়ী)
+    # ধাপ ২: একটি স্থিতিশীল এবং পরীক্ষিত ডকার ইমেজ ব্যবহার করে AAB তৈরি করা
+    - name: Build Android App Bundle (AAB) using cordova-ci
+      # আমরা আর beevelop/cordova ব্যবহার করছি না
+      uses: cordova-ci/cordova-android@v1.2.0
+      with:
+        # এই অ্যাকশনটি স্বয়ংক্রিয়ভাবে আপনার config.xml অনুযায়ী একটি AAB তৈরি করবে
+        build: bundle
+        
+    # ধাপ ৩: সঠিক লোকেশন থেকে তৈরি হওয়া AAB ফাইলটি আপলোড করা
     - name: Upload AAB as Artifact
       uses: actions/upload-artifact@v4
       with:
         name: DutyManager-AAB
-        path: build_folder/platforms/android/app/build/outputs/bundle/release/app-release.aab
+        # এই অ্যাকশনটি স্বয়ংক্রিয়ভাবে সঠিক পাথে AAB তৈরি করে
+        path: platforms/android/app/build/outputs/bundle/release/app-release.aab

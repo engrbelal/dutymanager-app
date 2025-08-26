@@ -1,4 +1,4 @@
-name: Build Stable Signed APK
+name: Build Final Signed APK
 
 on:
   push:
@@ -19,7 +19,6 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # আমরা Gradle-কে একটি নির্দিষ্ট এবং স্থিতিশীল সংস্করণে আটকে দিচ্ছি
     - name: Set up Gradle v8.4
       uses: gradle/actions/setup-gradle@v3
       with:
@@ -42,7 +41,9 @@ jobs:
         cordova platform add android@12
         keytool -genkey -v -keystore release-key.keystore -alias $KEY_ALIAS -keyalg RSA -keysize 2048 -validity 10000 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD -dname "CN=Md Belal Hossain, OU=Development, O=Belal Apps, L=Dhaka, S=Dhaka, C=BD" -noprompt
         echo '{ "android": { "release": { "keystore": "release-key.keystore", "storePassword": "'$KEYSTORE_PASSWORD'", "alias": "'$KEY_ALIAS'", "password": "'$KEY_PASSWORD'" } } }' > build.json
-        cordova build android --release --buildConfig=build.json
+        
+        # আমরা এখন buildConfig এবং --apk দুটিই একসাথে ব্যবহার করছি
+        cordova build android --release -- --buildConfig=build.json --apk
 
     - name: Find and Upload Signed APK
       uses: actions/upload-artifact@v4

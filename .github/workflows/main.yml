@@ -1,4 +1,4 @@
-name: Build Signed Release APK
+name: Build Unsigned Release APK
 
 on:
   push:
@@ -26,40 +26,21 @@ jobs:
 
     - name: Install Android SDK and Build Tools
       run: |
-        # ANDROID_HOME is already set by the runner environment
-        # We just need to install the specific packages using sdkmanager
         echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
-    - name: Build and Sign APK
-      env:
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    - name: Build Unsigned APK
       run: |
-        # Install Cordova
         npm install -g cordova
-
-        # Create Cordova project
         cordova create build_folder com.belal.dutymanager DutyManager
         cd build_folder
-
-        # Copy your app files
         cp ../config.xml ../index.html ../icon.png ../splash.png www/
-
-        # Add Android platform
         cordova platform add android@12
+        
+        # কোনো সাইনিং ছাড়াই সরাসরি APK তৈরি করা হচ্ছে
+        cordova build android --release
 
-        # Generate Keystore
-        keytool -genkey -v -keystore release-key.keystore -alias $KEY_ALIAS -keyalg RSA -keysize 2048 -validity 10000 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD -dname "CN=Md Belal Hossain, OU=Development, O=Belal Apps, L=Dhaka, S=Dhaka, C=BD" -noprompt
-
-        # Create build.json for signing
-        echo '{ "android": { "release": { "keystore": "release-key.keystore", "storePassword": "'$KEYSTORE_PASSWORD'", "alias": "'$KEY_ALIAS'", "password": "'$KEY_PASSWORD'" } } }' > build.json
-
-        # Build the signed release APK
-        cordova build android --release -- --buildConfig=build.json
-
-    - name: Upload Signed APK as Artifact
+    - name: Upload Unsigned APK as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DutyManager-Signed-APK
-        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-signed.apk
+        name: DutyManager-Unsigned-APK
+        path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk

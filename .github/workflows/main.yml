@@ -19,6 +19,11 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.4' # <-- আমরা এখানে Gradle-এর একটি স্থিতিশীল ভার্সন নির্দিষ্ট করে দিচ্ছি
+
     - name: Build and Sign APK
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -61,4 +66,3 @@ jobs:
       with:
         name: DutyManager-Signed-APK
         path: build_folder/platforms/android/app/build/outputs/apk/release/app-release-signed.apk
-
